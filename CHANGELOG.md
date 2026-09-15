@@ -19,6 +19,23 @@
 
 ## [未发布]
 
+## [0.5.0] - 2026-09-15
+
+### 新增
+
+- **ADR-0007**：官方 UE 5.8 MCP 出现后，MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度；官方实现进注册表但**不预设首选**。ADR-0001 ~ 0006 条目未改动（台账只追加）。
+- **CONVENTIONS v1.4**：
+  - §20.3 MCP 注册表条目新增 `source`（`first-party` / `community`）、`engine_version_range`、`maturity`（含 `unknown`），并回填全部既有实现；`selection_policy` 增 `preference_rules`（偏好提示，**不自动选定**）。
+  - §20.3 明确 **`semantic_map: null` 的语义 =「工具尚不存在」而非「还没填」** —— 禁止写全 `null` 空壳映射表（会掩盖「要写实现」vs「要填映射」的工作量差异）；新增 `supports_basis: design-complete` 表示「设计齐全但落地前可用为 0」。
+  - §20.2 `unreal` 行补全 4 个实现端口（6776 / 30010 / 8091 / 55557）+ **预留 8000**。
+  - §18 端口 `status` 定为**三态**：省略 = 已启用 · `reserved` = 已登记未启用 · `deferred` = 引擎延后；只读视图对应 `studio_ports` / `reserved_ports` / `deferred_ports` 三组。
+- `catalog/ports.json`：登记 `unreal-mcp-official`（HTTP 8000，`status: "reserved"`）—— 官方 MCP 内置于 UE 5.8 编辑器进程，本地回环 `/mcp`。
+
+### 说明
+
+- `maturity` 特意保留 `unknown` 取值：不留这一项，回填时只能二选一——标 `stable` 或标 `experimental` 都是撒谎。**枚举缺一个「不知道」，就会逼出假数据。**
+- 本次为**文档核对**，非上机实测；官方实现的 `verified_at: null` 即为此意。
+
 ## [0.4.0] - 2026-09-15
 
 ### 新增

@@ -6,8 +6,8 @@
 > **变更流程**：只从本文件发起 → 同步 `catalog/schema/` 与 Studio 契约 → 双库适配；禁止任一侧私自发明第二套定义。
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
-> 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0006）
-> **当前版本：v1.3（2026-09-15）** — v1.2 + 装配校验的实施解释与节点件接法（§19.4 / §19.5，18 件程序化构件落地时定死）
+> 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0007）
+> **当前版本：v1.4（2026-09-15）** — v1.3 + 依 ADR-0007：MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度，官方实现进注册表但**不预设首选**；端口 `status` 增 `reserved` 三态
 
 ---
 
@@ -484,6 +484,16 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | 轴心分类细则 | Studio `pipeline/origin-rules.md`（须与 §1 一致，由 CI 校验） |
 | 场景建筑拆分方案 | `gbe-studio/docs/BUILDING-DECOMPOSITION.md`（流程权威；契约部分见本文件 §19） |
 
+**端口条目的 `status` 三态**（ADR-0007）：
+
+| `status` | 含义 | 只读视图中的分组 |
+|---|---|---|
+| *（省略）* | 已启用 | `studio_ports` |
+| `reserved` | 已登记但**未启用** —— 仍须避让，以免被他人占用（如官方 MCP 的 8000） | `reserved_ports` |
+| `deferred` | 整个引擎延后（ADR-0004 Unity） | `deferred_ports` |
+
+> `reserved` 与 `deferred` **不可混用**：前者是"实现已登记、只是没选它"，后者是"引擎整体不排期"。
+
 ---
 
 ## 19. 构件分级与建筑拼装契约
@@ -623,7 +633,7 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 
 ## 20. 注册表（Provider / Engine / MCP）
 
-> 依 **ADR-0002 / 0003 / 0004 / 0005**。三张注册表是「平台 / 引擎 / MCP 实现」的**机器可读真源**，位于 `gbe-studio/core/registry/`。本节表格是**镜像**。
+> 依 **ADR-0002 / 0003 / 0004 / 0005 / 0007**。三张注册表是「平台 / 引擎 / MCP 实现」的**机器可读真源**，位于 `gbe-studio/core/registry/`。本节表格是**镜像**。
 > **共同原则**：一切"启用什么"由注册表的 `enabled` / `active` 字段决定，**不写死在代码里**（§15.1、§15.10）。
 
 ### 20.1 Provider 注册表（`core/registry/providers.json`）
@@ -656,7 +666,7 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | id | 状态 | 端口 / 传输 | 备注 |
 |---|---|---|---|
 | `godot` | ✅ enabled | TCP 9876（MCP 写死） | 主引擎 |
-| `unreal` | ✅ enabled | UDP 6776 + HTTP 30010 | 零编译路线优先 |
+| `unreal` | ✅ enabled | UDP 6776 · HTTP 30010 · WS 8091 · TCP 55557（+ **预留 HTTP 8000**） | 4 个 MCP 实现可选；8000 = 官方实现（ADR-0007）。**官方实现不预设首选** |
 | `blender` | ✅ enabled | TCP 9877 | 精修主通道（非落地引擎） |
 | `unity` | ⏸ **deferred** | （预留 HTTP 8080） | ADR-0004：延后，契约保留、实现未做 |
 
@@ -665,7 +675,13 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 
 ### 20.3 MCP 实现注册表（`core/registry/mcp.json`）
 
-**「引擎 × 实现」多对多，不预设唯一实现。**
+**「引擎 × 实现」多对多，不预设唯一实现。** 条目带三个维度用于取舍（ADR-0007）：
+
+| 字段 | 取值 | 含义 |
+|---|---|---|
+| `source` | `first-party` \| `community` | 跟引擎发布周期 vs 依赖第三方维护者 |
+| `engine_version_range` | SemVer 区间串 \| `null` | **`null` = 未核实，不等于「无限制」** |
+| `maturity` | `experimental` \| `beta` \| `stable` \| `unknown` | `unknown` = 未核实，**不允许猜一个体面的值** |
 
 ```jsonc
 {
@@ -673,13 +689,24 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
     "active": null,
     "implementations": [
       { "id": "yanhuifair-godot-mcp", "repo": "@yanhuifair/godot-mcp",
-        "transport": "tcp", "port": 9876, "tool_count": 386,
+        "source": "community", "maturity": "unknown", "engine_version_range": null,
+        "transport": "tcp", "ports": [9876], "tool_count": 386,
         "requirements": ["编辑器插件", "项目已打开"],
         "supports": ["probe","importAsset","instantiate","applyCollision","remapMaterials","registerScene","verify","undo"],
         "verified_at": "2026-09" }
     ]
   },
-  "unreal": { "active": null, "implementations": [ /* sam-david / ChiR24 / aadeshrao123 */ ] },
+  "unreal": {
+    "active": null,
+    "implementations": [
+      // ★ first-party：UE 5.8 起内置（Experimental），端口 8000，需自写 GBE Toolset
+      { "id": "unreal-official-mcp", "source": "first-party", "maturity": "experimental",
+        "engine_version_range": ">=5.8", "semantic_map": null,
+        "semantic_map_blocked_by": "官方插件不含 GBE 语义动作，需先实现 Toolset —— 阻塞是「工具还不存在」，不是「还没查」" },
+      // community：sam-david（零编译）/ ChiR24 / aadeshrao123
+      { "id": "sam-david-unreal-mcp", "source": "community", "maturity": "unknown", "engine_version_range": null }
+    ]
+  },
   "blender": { "active": null, "implementations": [ /* blender-mcp */ ] }
 }
 ```
@@ -691,6 +718,9 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 - 适配器通过 `engines/<engine>/semantic_map.json`（语义动作 → 该实现的具体工具名）调用；**新实现 = 一条注册表记录 + 一份映射表**。
 - `supports` 未覆盖某语义动作时，适配器**明确报告能力缺失**并给替代路径，不静默失败。
 - Bridge Router（Phase 4）聚合的是**语义面**而非实现面，因此换实现不影响 Router。
+- **`semantic_map: null` 的语义**：不是"还没填"，而是"**工具尚不存在**"（官方实现必须先写 Toolset）。此时**不写全 `null` 的空壳映射表** —— 空壳会掩盖"要写实现"与"要填映射"这两种完全不同的工作量（ADR-0007）。
+- **`supports_basis`**：`design-complete` 表示"设计上齐全、但落地前实际可用为 0"，适配器必须如实报告，不得当作已验证可用。
+- **`maturity` 不得因「官方」而上调**：官方实现当前为 `experimental`，Epic 自述 API 与格式可能变化、不建议用于生产。
 
 ---
 
@@ -701,4 +731,5 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | 2026-09-15 | 初稿：合并双库方案评审结论，固定单位/轴心/朝向、id·version、预算单源、status、recipe_hash、材质、派生边界、账本归属、硬性禁令、迁移对照与 Phase 1 DoD |
 | 2026-09-15 | **v1.1 三方对齐**（依 `docs/CONVENTIONS-REVIEW.md`）：① 明确"本文档表格 = 镜像、真源在 schema / kit.json"，新增原则 5（三份文档同提交同步）；② 校验器统一为"语法单源 / 门禁双跑"；③ inbox 统一 `inbox/<id>@<version>/`，intake 完成后 **move 归档**而非删除；④ §1 **修正 UE 为左手系**，新增尺寸轴序、轴转换责任划分、kit 不可覆盖 axis/pivot；⑤ §2.2 目录名**严格等于** id 第三段（去 `roof-` 前缀）；⑥ §2.3 区分契约版本 `schema_version` 与资产版本 `version`；⑦ §6 明确 flags 为**并行标记**；⑧ §7.1 `recipe_hash` **纳入 `qa`**；⑨ §8 补 `variants` 权威形态、`raw_ref` 语义、3/4 视角约定；⑩ §9 定义 `direction` 语义与 LOD 继承；⑪ §11 补登 Draco / 贴图变体 / variants 展开 / `_archive`；⑫ §12 账本定为 `provider_requested` + `provider_used` + `balance_source`；⑬ §5 增补许可（SPDX）与标签规则；⑭ §16 迁移表补全遗漏字段；⑮ §17 DoD 增容差与三方一致性检查；⑯ §18 端口表迁至 assets 自持 |
 | 2026-09-15 | **v1.2 决策回写**（依 `docs/DECISIONS.md` ADR-0001~0006）：① §16 整节重写为「存量原型处置（不迁移）」，删除 migration-exempt / migrate 服务 / 迁移台账 / preview-legacy，v1→v2 对照表降级为 DECISIONS 附录 A（ADR-0001）；② §15 新增禁令 11（禁静默兼容 v1 包）；③ §20.1 Provider 去 `rodin`（`disabled` 保留条目）、降级链改 `meshy → fal → hunyuan3d`（ADR-0002）；④ §20.1 增 `hunyuan3d` 三通道（`tokenhub`/`tencentcloud`/`web`），§12 账本增 `provider_channel`（ADR-0003）；⑤ §1 / §20.2 标注 Unity 为 `deferred`，`engines.unity` 字段保留（ADR-0004）；⑥ §0 新增原则 6（实现可替换、语义不变），新增 **§20 注册表**（Provider / Engine / MCP），§15 新增禁令 10（禁写死具名 MCP 工具）（ADR-0005）；⑦ 新增 **§19 构件分级与建筑拼装契约**：`granularity` L0–L3、模数约束、插槽类型表（§9.1 新增）、装配清单格式、装配校验判据、烘焙派生（ADR-0006）；⑧ §4 分类枚举增 `components/ornament` 与 `assemblies/`；⑨ §5.1 新增槽名标准词表；⑩ §11 增 `baked/` 派生行；⑪ §17 DoD 第 4/6/7/9 项调整并新增第 10 项（插槽+装配验收）；⑫ §0 新增原则 0（决策先于文档） |
+| 2026-09-15 | **v1.4 决策回写**（依 `docs/DECISIONS.md` **ADR-0007**，官方 UE 5.8 MCP 出现后）：① §20.3 条目新增 **`source` / `engine_version_range` / `maturity`** 三维度并回填全部既有实现，`selection_policy` 增 `preference_rules`（偏好提示，**不自动选定**，`preselect=false` 不变）；② §20.3 明确 **`semantic_map: null` 的语义 =「工具尚不存在」而非「还没填」**，禁止写全 `null` 空壳映射表（空壳会掩盖「要写实现」与「要填映射」的工作量差异），新增 `supports_basis: design-complete` 表示「设计齐全但落地前可用为 0」；③ §20.2 `unreal` 行补全 4 个实现的端口（6776 / 30010 / 8091 / 55557）+ **预留 8000**；④ §18 端口 `status` 定为**三态**（省略 = 已启用 · `reserved` = 已登记未启用 · `deferred` = 引擎延后），只读视图对应 `studio_ports` / `reserved_ports` / `deferred_ports` 三组；⑤ 配套修 `bridges/sync-ports.js`：`reserved` 原先被误算进「已启用」，且 `--probe` 因 `process.exit(main(...))` 在异步完成前杀掉进程而**从未产出过任何输出** |
 | 2026-09-15 | **v1.3 实施回写**（18 件程序化构件落地时推出）：① §19.5 新增「实施说明」——把五处契约沉默处一次性定死：`transform.rotation` 单位 = 弧度、`mate_types` 缺省 = 通配、`attach` 单向例外（消解它与「互认」的直接冲突）、**两类嵌入豁免**（已对接对 / 收容式）、承重链的**种子与两条传播规则**；② §19.5 新增「节点件接法」——面接 vs 枢接的可判定前提，推论 L 形转角件**翼厚须 ≥ 1.0 m**（翼厚 0.5 m 不可自洽），推论 `wall-line` 的 `wall_module_m` 整数倍只约束**同轴续接**；③ §19.4 补齐 `transform` 单位与清单文件命名 `assemblies/<id 第三段>.json`；④ 配套落地：`packages/schema/assembly.js`（§19.5 八条判据）、`packages/schema/test/assembly.js`（27 项回归：正向 + 逐条反例）、`tools/intake.js`（inbox→kits 只 move 不删，附带刷新 coverage 派生快照） |

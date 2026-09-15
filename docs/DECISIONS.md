@@ -4,7 +4,7 @@
 > **变更流程**：新增决策 = 追加条目，**不修改历史条目**；若需推翻，追加一条 `supersedes` 指向旧条目。
 > **与 CONVENTIONS 的关系**：ADR 记录「为什么这么定」；`docs/CONVENTIONS.md` 记录「因此必须怎么做」。ADR 通过后必须**在同一提交内**把结论回写进 CONVENTIONS 与两份 PLAN（原则 5）。
 >
-> 当前状态：**ADR-0001 ~ ADR-0006 已生效（2026-09-15）**
+> 当前状态：**ADR-0001 ~ ADR-0007 已生效（2026-09-15）**
 
 ---
 
@@ -268,6 +268,79 @@ Rodin 的核心优势是 **quad-dominant 拓扑最干净、4K PBR、保真最高
 - CONVENTIONS 新增章节「构件分级与拼装契约」（分级表、插槽类型表、装配清单规则、LOD 继承规则、QA 判据）。
 - schema 新增 `assembly.schema.json`（装配清单）；`asset.json` 增 `granularity`（`L0|L1|L2|L3`）字段。
 - 分类枚举新增 `assemblies/`（装配清单）与 `components/` 的细化子类。
+
+---
+
+## ADR-0007 — 官方 MCP 进注册表，引入「来源 / 版本区间 / 成熟度」三维度，但不预设首选
+
+**状态**：已生效　**裁决人**：用户（大人）　**日期**：2026-09-15
+
+### 背景
+
+ADR-0005 裁决「MCP 不固定唯一实现」时（同日），`unreal` 段收录的是 3 个**社区**实现（`sam-david` / `ChiR24` / `aadeshrao123`）——当时视野中不存在官方实现。
+
+核查 2026-09 生态后发现两件事实，注册表的前提随之失效：
+
+1. **UE 5.8（2026-06-17 发布）首次内置官方 MCP 插件**（Experimental）：把 MCP server 嵌进编辑器进程，本地回环绑定 `http://127.0.0.1:8000/mcp`；配套 `AllToolsets` 插件；通过 `Toolset Registry` 机制（继承 `UToolsetDefinition` 即自动暴露为 JSON-RPC tool）可扩展；`ModelContextProtocol.GenerateClientConfig` 一条命令生成客户端配置。
+2. **5.8 是 UE5 计划内最后一个版本**；UE6 目标 2027 底 Early Access，且 Epic 明示 **UE6 将把 MCP 做成一等公民**（State of Unreal 2026 三大方向之一，含 Claude / Gemini 集成）。
+
+结论：**注册表缺一条**。更根本的是，注册表原先只有「社区项目之间怎么选」这一个维度，而官方实现与社区实现**不是同类选项**——可靠性来源、引擎版本覆盖、扩展方式都不同，扁平列表表达不了。
+
+且官方实现带来一个 ADR-0005 未覆盖的能力差异：社区实现是「**把语义动作映射到它已有的工具名**」；官方插件暴露的是引擎操作工具（actor / 蓝图 / 材质 / Niagara / Sequencer），**不含 GBE 的 8 个语义动作**，要自己写 Toolset 才有可映射的工具名。即：**前者是"填映射表"，后者是"写实现"**——工作量与可控性不在同一量级。
+
+### 决策
+
+**官方实现进注册表，但不设为默认；条目新增三个维度以表达「官方 vs 社区」的取舍。**
+
+1. `core/registry/mcp.json` 的 `unreal` 段新增 `unreal-official-mcp` 条目（`source: "first-party"`）。**不改 `selection_policy.preselect = false`**——ADR-0005 的「不预设唯一实现」继续有效。
+
+2. **条目新增三个字段**，并回填全部既有实现：
+
+| 字段 | 取值 | 用途 |
+|---|---|---|
+| `source` | `"first-party"` \| `"community"` | 可靠性来源：跟引擎发布周期 vs 依赖维护者 |
+| `engine_version_range` | SemVer 区间串 \| `null` | 先按此过滤，避免选到与当前引擎不兼容的实现。**`null` = 未核实，不等于「无限制」** |
+| `maturity` | `"experimental"` \| `"beta"` \| `"stable"` \| `"unknown"` | 官方的 Experimental 标注必须如实反映，**不得因「官方」就当稳定**；未核实者填 `unknown`，**不允许替它猜一个看起来体面的值** |
+
+> 为什么给 `maturity` 留 `unknown`：本项目的既有纪律是「**如实报告比漂亮的零警告诚实**」（见 `gable-board-a` 厚度警告的保留决策）。若不留 `unknown`，回填时只能二选一——要么标 `stable`（撒谎），要么标 `experimental`（同样是撒谎）。**枚举缺一个"不知道"，就会逼出假数据。**
+
+3. **`selection_policy` 增 `preference_rules`（偏好提示，非自动选定）**：
+
+   - ① 先按 `engine_version_range` 过滤掉与当前引擎版本不兼容的实现；
+   - ② 要长期稳定、或要让 8 个语义动作由自己掌控 → 倾向 `first-party`（代价：需自行实现 Toolset）；
+   - ③ 要零编译，或引擎版本 < 5.8 → 倾向 `community`；
+   - ④ 以上均为**提示**，最终仍由用户在 `gbe-set` 中选择。
+
+4. **官方实现的 `semantic_map` 显式置 `null` 并记录阻塞原因**，不写空壳映射表：
+
+```jsonc
+"semantic_map": null,
+"semantic_map_blocked_by": "官方插件暴露的是引擎操作工具，不含 GBE 语义动作；需先实现 GBE Toolset（继承 UToolsetDefinition，C++ 或 Python）才有可映射的工具名"
+```
+
+   理由：ADR-0005 的既有纪律是「禁止猜测工具名」（见 `engines/unreal/semantic_map.json` 的 `status: "unmapped"`）。本次的阻塞**不是「还没查」，而是「工具还不存在」**——写一份全 `null` 的映射表会掩盖这个区别。
+
+5. **官方实现的 `supports` 标为「设计上齐全」，但必须注明前提**：Toolset 由我们自己实现，不受第三方工具面限制，理论上 8 个动作都能有；但在 Toolset 落地前**实际可用为 0**。适配器据此明确报告能力缺失（ADR-0005 第 4 条）。
+
+6. **端口 8000 进 `catalog/ports.json`**，`status: "reserved"`。8000 是通用端口，启用前**必须探测占用**。
+
+7. **Mesh Terrain 另案评估，不在本 ADR 裁决范围内**：UE 5.8 的实验性真 3D 网格体地形（可做悬崖 / **浮岛** / 隧道）与修仙场景的浮岛、洞天相关，但它是**引擎内建模能力**，与注册表无关，留待单独立项。
+
+### 影响
+
+- 正面：**ADR-0005 的抽象被这次生态变化验证了**。官方实现的出现没有推翻任何东西——只需**加一条数据 + 三个字段**，引擎适配器、语义动作层、Bridge Router 均无需改动。这正是「实现可替换」的设计意图。
+- 正面：注册表从此能表达「官方 / 社区」这个真实取舍，而不是靠 `notes` 里的散文。
+- 负面：三个新字段需为既有实现回填，且 `engine_version_range` 取值需核实（本次为文档核对，**非上机实测**）。
+- 负面：官方实现要真正可用，**必须先实现 GBE Toolset**——这是 ADR-0005 未预见的工作量。在此之前它只能算「候选在册、能力为零」。
+- 风险：官方 MCP 标注为 Experimental，Epic 自己说明 API 与格式可能变化、不建议用于生产；**不得因「官方」而当作稳定依赖**。
+
+### 落地要求
+
+- `gbe-assets/docs/DECISIONS.md`：追加本条（ADR-0001 ~ 0006 条目不动）。
+- `gbe-studio/core/registry/mcp.json`：新增 `unreal-official-mcp`；为 3 个社区实现回填 `source` / `engine_version_range` / `maturity`；`selection_policy` 增 `filter_by_engine_version` 与 `preference_rules`。
+- `gbe-studio/core/registry/engines.json`：`unreal.ports` 增 `unreal-mcp-official`。
+- `gbe-assets/catalog/ports.json`：登记端口 8000（`status: "reserved"`）；重跑 `bridges/sync-ports.js` 刷新只读视图。
+- CONVENTIONS §20.2 / §20.3 镜像同步。
 
 ---
 

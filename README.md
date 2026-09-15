@@ -95,8 +95,8 @@ gbe-assets/
 │   └── intake.js           ★   inbox → kits 入库（先校验后搬、只 move 不删、旧版本进 _archive、刷新 coverage）
 │
 ├── docs/
-│   ├── DECISIONS.md         ★   决策台账（ADR-0001 ~ 0006）—— 为什么这么定
-│   ├── CONVENTIONS.md       ★   双库共享约定 v1.3 —— 因此必须怎么做
+│   ├── DECISIONS.md         ★   决策台账（ADR-0001 ~ 0007）—— 为什么这么定
+│   ├── CONVENTIONS.md       ★   双库共享约定 v1.4 —— 因此必须怎么做
 │   ├── PLAN.md                  仓储端完整方案（架构 / 契约 / 检索 / 下载 / 入库 / 路线图）
 │   └── CONVENTIONS-REVIEW.md    对齐前的审查存档 + 31 项处置记录（历史，非待办）
 │
@@ -197,8 +197,8 @@ console.log(a.ok, a.stats);   // 引用版本 / 对接数 / 面数 / 收容式�
 
 | 文档 | 作用 |
 |---|---|
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。ADR-0001 ~ 0006 已生效 |
-| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.3** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。ADR-0001 ~ 0007 已生效 |
+| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.4** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
 | [`docs/PLAN.md`](docs/PLAN.md) | 仓储端完整方案（架构 · 契约 · 检索 · 下载 · 入库 · 路线图） |
 | [`CHANGELOG.md`](CHANGELOG.md) | 更新日志（版本号的真源伴随物） |
 | [`docs/CONVENTIONS-REVIEW.md`](docs/CONVENTIONS-REVIEW.md) | 对齐前的审查存档（历史，非待办） |

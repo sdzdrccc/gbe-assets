@@ -37,6 +37,16 @@
       "required": false
     },
     {
+      "id": "unreal-mcp-official",
+      "port": 8000,
+      "protocol": "http",
+      "owner": "gbe-studio",
+      "purpose": "UE 5.8+ 官方 Unreal MCP 插件（嵌在编辑器进程内，本地回环 /mcp）",
+      "required": false,
+      "status": "reserved",
+      "note": "ADR-0007：官方实现已进 mcp.json 但【不预设首选】。8000 为通用端口，冲突风险高 —— 启用前必须探测占用；若官方插件端口可配置，优先改到非通用端口。"
+    },
+    {
       "id": "unreal-mcp-alt-chir24",
       "port": 8091,
       "protocol": "ws",
