@@ -2,7 +2,7 @@
 
 **GBE = Generative Blender-to-Engine**
 
-[![version](https://img.shields.io/badge/version-0.2.0-blue)](CHANGELOG.md) ![license](https://img.shields.io/badge/code-MIT-green) ![assets](https://img.shields.io/badge/assets-CC0--1.0-lightgrey)
+[![version](https://img.shields.io/github/v/tag/sdzdrccc/gbe-assets?label=version&color=blue)](CHANGELOG.md) ![license](https://img.shields.io/badge/code-MIT-green) ![assets](https://img.shields.io/badge/assets-CC0--1.0-lightgrey)
 
 > 仓储 / 服务 / 分发端：精修后的模型资产在这里被校验、索引、浏览、下载，并被引擎直接消费；**建筑由构件装配而成**。
 
