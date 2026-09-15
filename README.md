@@ -52,22 +52,26 @@ gbe-assets/
 ├── packages/
 │   └── schema/              ★   @gbe/schema —— 双库共用的契约校验包
 │       ├── package.json            包元数据（零依赖）
-│       ├── index.js                对外 API：validate* / checkPackage / 门禁函数
+│       ├── index.js                对外 API：validate* / checkPackage / checkAssemblyFull / 门禁函数
 │       ├── validate.js             零依赖 JSON Schema 子集校验器（含 $ref 解析）
-│       └── test/smoke.js           冒烟测试（37 项）
+│       ├── assembly.js         ★   装配级校验（CONVENTIONS §19.5 八条判据 + 库解析 + 极简 semver 范围）
+│       └── test/
+│           ├── smoke.js            构件级冒烟测试（37 项）
+│           └── assembly.js         装配级冒烟测试（27 项：正向 + 八条判据逐条反例）
 │
 ├── kits/                    ① 存储层 · 资产实体（权威）
-│   └── cn-ancient/                 中国古建风格 kit
+│   └── cn-ancient/                 中国古建风格 kit（当前 18 件程序化构件）
 │       ├── kit.json            ★  模数网格 / 面数预算 / 材质分组 / 覆盖度（kit 内的真源）
 │       └── <category>/<name>/      每件资产一个目录（目录名 = asset.id 第三段，无类别前缀）
 │           ├── asset.json          资产契约实例（asset.v2）
 │           ├── source.json         来源与复现信息（source.v2）
-│           ├── model.glb           引擎无关标准模型（1u = 1m，bottom-center，+Y up / -Z forward）
-│           ├── preview.png         512×512 三视角四分之三预览
+│           ├── lod0.glb            引擎无关标准模型（1u = 1m，bottom-center，+Y up / -Z forward）
+│           ├── preview.png         512×512 白底 3/4 视角预览
 │           └── lods/               可选：分级细节
 │
 ├── assemblies/              ① 存储层 · L0 建筑装配清单（权威 JSON，非网格）
-│   └── .gitkeep                    占位：等第一批装配清单落位
+│   └── <kit>/<category>/<name>.json  与 kits/ 同构；按 id 索引，不参与 folder-per-asset 扫描
+│       · cn-ancient/assemblies/building/wanan-wall-corner-a.json   首件装配清单（§10.4 DoD 示范）
 │
 ├── materials/              ① 存储层 · 跨 kit 共享材质
 │   └── .gitkeep                    占位
@@ -88,11 +92,11 @@ gbe-assets/
 ├── clients/                ④ 引擎客户端与 CLI
 │   └── .gitkeep                    占位
 ├── tools/                      独立工具脚本
-│   └── .gitkeep                    占位
+│   └── intake.js           ★   inbox → kits 入库（先校验后搬、只 move 不删、旧版本进 _archive、刷新 coverage）
 │
 ├── docs/
 │   ├── DECISIONS.md         ★   决策台账（ADR-0001 ~ 0006）—— 为什么这么定
-│   ├── CONVENTIONS.md       ★   双库共享约定 v1.2 —— 因此必须怎么做
+│   ├── CONVENTIONS.md       ★   双库共享约定 v1.3 —— 因此必须怎么做
 │   ├── PLAN.md                  仓储端完整方案（架构 / 契约 / 检索 / 下载 / 入库 / 路线图）
 │   └── CONVENTIONS-REVIEW.md    对齐前的审查存档 + 31 项处置记录（历史，非待办）
 │
@@ -166,14 +170,25 @@ node scripts/install-hooks.js     # → git config core.hooksPath scripts/hooks
 # 校验一个投递包（零依赖，Node 内置模块）
 node packages/schema/index.js package inbox/<asset-id>@<version>/
 
-# 跑契约校验器的冒烟测试
+# 入库：inbox → kits（先校验后搬、只 move 不删、旧版本进 _archive、顺手刷新 coverage）
+node tools/intake.js                 # 加 --dry-run 只报告不动盘；--reindex 只刷 coverage.done
+
+# 装配清单：语法 + §19.5 八条语义判据（--strict 把所有警告升级为错误，供 CI 用）
+node packages/schema/index.js assembly       assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
+node packages/schema/index.js assembly-check assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
+
+# 跑契约校验器的冒烟测试（构件级 37 项 + 装配级 27 项）
 node packages/schema/test/smoke.js
+node packages/schema/test/assembly.js
 ```
 
 ```js
 const gbe = require('@gbe/schema');
 const r = gbe.checkPackage('inbox/cn-ancient.roof.xuanshan-single-a@1.0.0');
 if (!r.ok) console.error(r.errors);
+
+const a = gbe.checkAssemblyFull('assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json');
+console.log(a.ok, a.stats);   // 引用版本 / 对接数 / 面数 / 收容式嵌入数
 ```
 
 ---
@@ -183,7 +198,7 @@ if (!r.ok) console.error(r.errors);
 | 文档 | 作用 |
 |---|---|
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。ADR-0001 ~ 0006 已生效 |
-| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.2** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
+| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.3** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
 | [`docs/PLAN.md`](docs/PLAN.md) | 仓储端完整方案（架构 · 契约 · 检索 · 下载 · 入库 · 路线图） |
 | [`CHANGELOG.md`](CHANGELOG.md) | 更新日志（版本号的真源伴随物） |
 | [`docs/CONVENTIONS-REVIEW.md`](docs/CONVENTIONS-REVIEW.md) | 对齐前的审查存档（历史，非待办） |

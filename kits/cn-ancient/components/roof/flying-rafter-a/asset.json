@@ -1,0 +1,110 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.roof.flying-rafter-a",
+  "name": "飞椽",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/roof",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "roof",
+    "rafter",
+    "flying",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      0.25,
+      0.25,
+      1
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 12,
+    "vertices": 36
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "beam",
+        "ref": "timber/ben-se"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "run-east",
+      "type": "continue",
+      "direction": "+x",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "step_m": 0.5,
+      "mate_types": [
+        "continue"
+      ],
+      "grid_locked": true,
+      "note": "与檐椽同档位"
+    },
+    {
+      "name": "tail-seat",
+      "type": "stack-up",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        -0.5
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "尾端压檐椽"
+    },
+    {
+      "name": "head-seat",
+      "type": "stack-up",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0.5
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "头端挑出"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

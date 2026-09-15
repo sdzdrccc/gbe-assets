@@ -1,0 +1,125 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.base.stair-flight-a",
+  "name": "踏跺（御路）",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/base",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "base",
+    "stair",
+    "stone",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      3,
+      1,
+      2
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 60,
+    "vertices": 180
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "base",
+        "ref": "stone/qing-shi"
+      },
+      {
+        "slot": "trim",
+        "ref": "stone/han-bai-yu"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "bottom",
+      "type": "ground-foot",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "top",
+      "type": "roof-seat",
+      "direction": "+y",
+      "position_m": [
+        0,
+        1,
+        0
+      ],
+      "mate_types": [
+        "ground-foot",
+        "stack-up"
+      ],
+      "grid_locked": true,
+      "note": "踏步顶面与台基面齐平，承接上层构件"
+    },
+    {
+      "name": "end-west",
+      "type": "wall-line",
+      "direction": "-x",
+      "position_m": [
+        -1.5,
+        0,
+        0
+      ],
+      "mate_types": [
+        "wall-line"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "end-east",
+      "type": "wall-line",
+      "direction": "+x",
+      "position_m": [
+        1.5,
+        0,
+        0
+      ],
+      "mate_types": [
+        "wall-line"
+      ],
+      "grid_locked": true
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

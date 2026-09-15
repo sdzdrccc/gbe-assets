@@ -1,0 +1,96 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.base.plinth-fupen-a",
+  "name": "柱础·覆盆式",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/base",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "base",
+    "plinth",
+    "stone",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      0.75,
+      0.5,
+      0.75
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 124,
+    "vertices": 372
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "base",
+        "ref": "stone/bai-shi"
+      },
+      {
+        "slot": "trim",
+        "ref": "stone/qing-shi"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "bottom",
+      "type": "ground-foot",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "top",
+      "type": "stack-up",
+      "direction": "+y",
+      "position_m": [
+        0,
+        0.5,
+        0
+      ],
+      "mate_types": [
+        "ground-foot"
+      ],
+      "grid_locked": true,
+      "note": "柱脚落此面"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

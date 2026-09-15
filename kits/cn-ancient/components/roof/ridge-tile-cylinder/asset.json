@@ -1,0 +1,94 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.roof.ridge-tile-cylinder",
+  "name": "脊筒",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/roof",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "roof",
+    "ridge",
+    "tile",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      0.5,
+      0.25,
+      0.25
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 48,
+    "vertices": 144
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "roof",
+        "ref": "roof-tile/qingwa"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "run-east",
+      "type": "continue",
+      "direction": "+x",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "step_m": 0.5,
+      "mate_types": [
+        "continue"
+      ],
+      "grid_locked": true,
+      "note": "顺脊重复，步距 = 段长"
+    },
+    {
+      "name": "seat",
+      "type": "stack-up",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "坐在脊背上"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

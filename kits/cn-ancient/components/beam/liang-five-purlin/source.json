@@ -1,0 +1,23 @@
+{
+  "schema_version": "2",
+  "provenance": {
+    "provider": "procedural",
+    "channel": "default",
+    "model": "gbe-procedural/1.0.0",
+    "mode": "procedural",
+    "task_id": null,
+    "cost": {
+      "value": 0,
+      "unit": "credit",
+      "usd_est": 0
+    },
+    "created_at": "2026-09-15T15:05:49.897Z"
+  },
+  "refine": {
+    "recipe_id": "procedural/beam/liang-five-purlin@1",
+    "recipe_hash": "b7a3ecc73585160f",
+    "manual": false,
+    "note": "参数化几何内核直接生成，无平台调用、无人工精修。recipe_hash 覆盖几何内核源码 + 构件配方 + 构件参数，同代码同参数必得同 hash、同几何。"
+  },
+  "created_at": "2026-09-15T15:05:49.897Z"
+}

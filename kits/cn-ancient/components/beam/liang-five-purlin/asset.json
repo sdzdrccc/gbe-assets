@@ -1,0 +1,109 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.beam.liang-five-purlin",
+  "name": "五架梁",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/beam",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "beam",
+    "liang",
+    "timber",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      0.5,
+      0.5001,
+      6
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 72,
+    "vertices": 216
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "beam",
+        "ref": "timber/hong-mu"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "bearing-west",
+      "type": "stack-up",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        -3
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "西端梁头坐柱/檩"
+    },
+    {
+      "name": "bearing-east",
+      "type": "stack-up",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        3
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "东端梁头坐柱/檩"
+    },
+    {
+      "name": "top",
+      "type": "stack-up",
+      "direction": "+y",
+      "position_m": [
+        0,
+        0.5,
+        0
+      ],
+      "mate_types": [
+        "ground-foot"
+      ],
+      "grid_locked": true,
+      "note": "梁背承瓜柱"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

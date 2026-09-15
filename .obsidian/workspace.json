@@ -11,10 +11,14 @@
             "id": "fa3f4ae5111b592c",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "README.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新标签页"
+              "title": "README"
             }
           }
         ]
@@ -95,6 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -113,6 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -155,6 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -181,6 +188,28 @@
       "bases:新建数据库": false
     }
   },
-  "active": "fa3f4ae5111b592c",
-  "lastOpenFiles": []
+  "active": "57fae37293830384",
+  "lastOpenFiles": [
+    "assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json",
+    "assemblies/cn-ancient/assemblies/building",
+    "assemblies/cn-ancient/assemblies",
+    "assemblies/cn-ancient",
+    "packages/schema/test/assembly.js",
+    "assemblies/wanan-wall-corner-a.json",
+    "kits/cn-ancient/components/wall/qiang-straight-a/preview.png",
+    "kits/cn-ancient/components/wall/qiang-straight-a/source.json",
+    "kits/cn-ancient/components/wall/qiang-straight-a/lod0.glb",
+    "kits/cn-ancient/components/wall/qiang-straight-a/asset.json",
+    "kits/cn-ancient/components/wall/qiang-corner-a/source.json",
+    "kits/cn-ancient/components/wall/qiang-corner-a/preview.png",
+    "kits/cn-ancient/components/wall/qiang-corner-a/lod0.glb",
+    "kits/cn-ancient/components/roof/tile-field-pantile/preview.png",
+    "kits/cn-ancient/components/roof/ridge-tile-cylinder/preview.png",
+    "kits/cn-ancient/components/roof/purlin-round-a/preview.png",
+    "kits/cn-ancient/components/roof/flying-rafter-a/preview.png",
+    "kits/cn-ancient/components/roof/gable-board-a/preview.png",
+    "kits/cn-ancient/components/roof/eave-rafter-a/preview.png",
+    "kits/cn-ancient/components/railing/balustrade-corner-a/preview.png",
+    "kits/cn-ancient/components/pillar/guazhu-a/preview.png"
+  ]
 }

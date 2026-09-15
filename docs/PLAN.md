@@ -3,7 +3,7 @@
 > **GBE = Generative Blender-to-Engine**
 > GBE-Assets 是**仓储 / 服务 / 分发端**：精修后的模型资产在这里被校验、索引、浏览、下载，并被引擎直接消费。
 > 本文是**重构方案**，不复用 tbg-assets 的既有结构；tbg-assets 仅作为已验证的原型与经验来源（**只读归档，不迁移**，ADR-0001）。
-> **共享约定（单位/轴心/朝向、尺寸轴序、id·version、预算单源、status、recipe_hash、材质、许可、派生边界、硬性禁令、构件分级 §19、注册表 §20）见 [`docs/CONVENTIONS.md`](./CONVENTIONS.md)（v1.2）**——实现前先读。
+> **共享约定（单位/轴心/朝向、尺寸轴序、id·version、预算单源、status、recipe_hash、材质、许可、派生边界、硬性禁令、构件分级 §19、注册表 §20）见 [`docs/CONVENTIONS.md`](./CONVENTIONS.md)（v1.3）**——实现前先读。
 > **决策依据见 [`docs/DECISIONS.md`](./DECISIONS.md)（ADR-0001 ~ ADR-0006）**：存量不迁移 · 不接 Rodin · 混元3D 三通道 · Unity 延后 · MCP 实现可切换 · 构件分级拼装。
 > 四份文档（`catalog/schema/` · `CONVENTIONS.md` · 本 PLAN · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`）**必须口径一致**。若发现冲突——以 schema 为机器可读真源、以 CONVENTIONS 为语义裁决，并**在同一提交内修掉本 PLAN**。
 
@@ -536,4 +536,4 @@ GBE-Studio  ──投递──▶  <gbe-assets>/inbox/<asset-id>@<version>/
 
 分工一句话：**Studio 负责"把东西做出来"，Assets 负责"让它被找到、被看清、被取走、被拼起来"**。
 
-拆分工序与批次计划见 `gbe-studio/docs/BUILDING-DECOMPOSITION.md`；契约细节以 `docs/CONVENTIONS.md`（v1.2）为准。
+拆分工序与批次计划见 `gbe-studio/docs/BUILDING-DECOMPOSITION.md`；契约细节以 `docs/CONVENTIONS.md`（v1.3）为准。

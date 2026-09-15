@@ -13,15 +13,17 @@
  *   if (!p.ok) console.error(p.errors);
  *
  * CLI：
- *   node index.js asset      path/to/asset.json
- *   node index.js source     path/to/source.json
- *   node index.js assembly   path/to/assembly.json
- *   node index.js package    path/to/inbox/<id>@<version>/
+ *   node index.js asset           path/to/asset.json
+ *   node index.js source          path/to/source.json
+ *   node index.js assembly        path/to/assembly.json         （语法）
+ *   node index.js assembly-check  path/to/assembly.json         （§19.5 语义，需真源库）
+ *   node index.js package         path/to/inbox/<id>@<version>/
  */
 
 const fs = require('fs');
 const path = require('path');
 const { validateAgainst } = require('./validate');
+const asm = require('./assembly');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const SCHEMA_DIR = path.join(REPO_ROOT, 'catalog', 'schema');
@@ -406,6 +408,47 @@ function checkPackage(dir) {
 }
 
 // ---------------------------------------------------------------------------
+// 综合校验：一条装配清单（先语法，后 §19.5 语义）
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {object|string} manifest 装配清单对象，或其 JSON 文件路径
+ * @param {object} [opts] { strict }
+ * @returns {{ok:boolean, errors:any[], warnings:any[], flags:string[], stats:any}}
+ */
+function checkAssemblyFull(manifest, opts = {}) {
+  let m = manifest;
+  if (typeof manifest === 'string') {
+    try {
+      m = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    } catch (e) {
+      return {
+        ok: false,
+        errors: [{ path: '$', message: `JSON 读取失败：${e.message}` }],
+        warnings: [],
+        flags: [],
+        stats: {},
+      };
+    }
+  }
+
+  const gate = gateSchemaVersion(m, 'assembly');
+  if (!gate.valid) return { ok: false, errors: gate.errors, warnings: [], flags: [], stats: {} };
+
+  const syntax = validateAssembly(m);
+  if (!syntax.valid) return { ok: false, errors: syntax.errors, warnings: syntax.warnings || [], flags: [], stats: {} };
+
+  const res = asm.checkAssembly(m, { repoRoot: REPO_ROOT, ...opts });
+  return {
+    ok: res.ok,
+    errors: [...(syntax.errors || []), ...res.errors],
+    warnings: [...(syntax.warnings || []), ...res.warnings],
+    flags: res.flags,
+    stats: res.stats,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
@@ -426,6 +469,7 @@ function main(argv) {
   };
 
   if (kind === 'package') return report(checkPackage(target));
+  if (kind === 'assembly-check') return report(checkAssemblyFull(target, { strict: argv.includes('--strict') }));
   if (!SCHEMA_FILES[kind]) {
     console.error(`未知类型：${kind}`);
     return 2;
@@ -459,6 +503,8 @@ module.exports = {
   checkGridAlignment,
   checkSocketsCompleteness,
   checkPackage,
+  checkAssemblyFull,
+  assembly: asm,
   resolveBudgets,
   resolveGrid,
   readPngSize,

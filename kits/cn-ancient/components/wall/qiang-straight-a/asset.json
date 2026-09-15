@@ -1,0 +1,140 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.wall.qiang-straight-a",
+  "name": "直墙段（2 m 模数）",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/wall",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "wall",
+    "qiang",
+    "brick",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      2,
+      3,
+      0.5
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 36,
+    "vertices": 108
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "wall",
+        "ref": "earth/qing-zhuan"
+      },
+      {
+        "slot": "trim",
+        "ref": "stone/qing-shi"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "bottom",
+      "type": "ground-foot",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "top",
+      "type": "stack-up",
+      "direction": "+y",
+      "position_m": [
+        0,
+        3,
+        0
+      ],
+      "mate_types": [
+        "ground-foot"
+      ],
+      "grid_locked": true,
+      "note": "墙顶可承檩 / 压顶"
+    },
+    {
+      "name": "end-west",
+      "type": "wall-line",
+      "direction": "-x",
+      "position_m": [
+        -1,
+        0,
+        0
+      ],
+      "mate_types": [
+        "wall-line"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "end-east",
+      "type": "wall-line",
+      "direction": "+x",
+      "position_m": [
+        1,
+        0,
+        0
+      ],
+      "mate_types": [
+        "wall-line"
+      ],
+      "grid_locked": true
+    },
+    {
+      "name": "run-east",
+      "type": "continue",
+      "direction": "+x",
+      "position_m": [
+        1,
+        0,
+        0
+      ],
+      "step_m": 2,
+      "mate_types": [
+        "continue"
+      ],
+      "grid_locked": true,
+      "note": "沿墙线重复，步距 = wall_module_m"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.roof.gable-board-a",
+  "name": "博风板",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/roof",
+  "tier": "primitive",
+  "granularity": "L2",
+  "tags": [
+    "roof",
+    "gable",
+    "board",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      2,
+      0.5,
+      0.1
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 12,
+    "vertices": 36
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "trim",
+        "ref": "timber/ben-se"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "mount",
+      "type": "attach",
+      "direction": "-z",
+      "position_m": [
+        0,
+        0.25,
+        0
+      ],
+      "mate_types": [
+        "attach",
+        "wall-line",
+        "stack-up",
+        "roof-seat",
+        "ridge-point",
+        "continue"
+      ],
+      "note": "挂在山面檩头外侧"
+    },
+    {
+      "name": "run-east",
+      "type": "continue",
+      "direction": "+x",
+      "position_m": [
+        1,
+        0,
+        0
+      ],
+      "step_m": 2,
+      "mate_types": [
+        "continue"
+      ],
+      "grid_locked": true,
+      "note": "沿山面斜坡分段"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

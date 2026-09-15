@@ -1,0 +1,160 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.assembly.wanan-wall-corner-a",
+  "name": "万安城·院墙转角（示范装配）",
+  "kit": "cn-ancient",
+  "category": "assemblies/building",
+  "granularity": "L0",
+  "grid_snap_m": 0.5,
+  "instances": [
+    {
+      "instance_id": "pier-01",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-corner-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "wall-x-01",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          1,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "pier-01::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-x-02",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-x-01::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-z-01",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          1
+        ],
+        "rotation": [
+          0,
+          -1.5707963267948966,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "pier-01::end-north"
+      }
+    },
+    {
+      "instance_id": "post-01",
+      "asset": {
+        "id": "cn-ancient.railing.balustrade-corner-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          3,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "pier-01::top"
+      },
+      "note": "望柱（枢接节点），1 m 高 → 顶面 y = 4 恰好落 story_heights_m 的第二档"
+    },
+    {
+      "instance_id": "stud-01",
+      "asset": {
+        "id": "cn-ancient.ornament.ding-door",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          4,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "mount": "wall-x-02::end-east"
+      },
+      "note": "门钉的真实宿主是板门（#21，路线 A，尚未入库）；此处挂在外露墙端面上，只为跑通 attach 通路。"
+    }
+  ],
+  "params": {
+    "note": "§10.4 端到端 DoD 示范件：18 件程序化构件的第一次成套引用。此处是\"墙角片段\"而非完整建筑——完整性不是本次要证明的东西，可装配性才是。",
+    "wall_module_m": 2,
+    "story_height_m": 3,
+    "instance_count": 5
+  },
+  "derived_from": null,
+  "scene_budget": {
+    "lod0": 350000,
+    "lod1": 90000,
+    "proxy": 12000
+  }
+}
