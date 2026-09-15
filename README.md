@@ -2,6 +2,8 @@
 
 **GBE = Generative Blender-to-Engine**
 
+[![version](https://img.shields.io/badge/version-0.2.0-blue)](CHANGELOG.md) ![license](https://img.shields.io/badge/code-MIT-green) ![assets](https://img.shields.io/badge/assets-CC0--1.0-lightgrey)
+
 > 仓储 / 服务 / 分发端：精修后的模型资产在这里被校验、索引、浏览、下载，并被引擎直接消费；**建筑由构件装配而成**。
 
 ---
@@ -18,6 +20,128 @@
 ```
 
 **核心原则**：`kits/` 与 `assemblies/` 里的东西永远是权威；索引与派生（引擎包装、LOD、预览、Draco）都是**可重建的缓存**。服务层挂了，库照样能用。
+
+---
+
+## 完整项目结构
+
+```
+gbe-assets/
+│
+├── README.md                    本文件
+├── CHANGELOG.md             ★   更新日志 —— 变更内容真源
+├── VERSION                  ★   版本号真源（单行 MAJOR.MINOR.PATCH）
+├── AGENTS.md                    AI 助手在本仓的工作纪律（硬约束）
+├── CONTRIBUTING.md              人工协作者的上手说明
+├── LICENSE                      代码许可：MIT
+├── LICENSE-ASSETS               资产许可：CC0-1.0
+├── .gitattributes               统一 LF、二进制与派生文件标记
+├── .gitignore                   排除凭证 / 本机配置 / 派生缓存
+├── catalog.config.json          全库配置：预算与模数的【默认兜底值】
+│
+├── catalog/                 ② 目录层
+│   ├── ports.json           ★   全项目端口唯一真源（含 studio 侧桥端口）
+│   ├── schema/              ★   契约真源（机器可读，一切校验的依据）
+│   │   ├── asset.v2.schema.json      资产身份 / 几何 / 材质 / 插槽 / 引擎
+│   │   ├── source.v2.schema.json     来源与复现（provider / recipe_hash / 许可）
+│   │   ├── assembly.v2.schema.json   L0 建筑装配清单（构件引用 + 变换 + 插槽绑定）
+│   │   ├── kit.schema.json           kit 元数据：模数网格 / 预算 / 材质分组
+│   │   └── collection.schema.json    合集（一次分发的一组资产）
+│   └── index.db                运行时生成的结构化 + 全文索引（git 忽略，可重建）
+│
+├── packages/
+│   └── schema/              ★   @gbe/schema —— 双库共用的契约校验包
+│       ├── package.json            包元数据（零依赖）
+│       ├── index.js                对外 API：validate* / checkPackage / 门禁函数
+│       ├── validate.js             零依赖 JSON Schema 子集校验器（含 $ref 解析）
+│       └── test/smoke.js           冒烟测试（37 项）
+│
+├── kits/                    ① 存储层 · 资产实体（权威）
+│   └── cn-ancient/                 中国古建风格 kit
+│       ├── kit.json            ★  模数网格 / 面数预算 / 材质分组 / 覆盖度（kit 内的真源）
+│       └── <category>/<name>/      每件资产一个目录（目录名 = asset.id 第三段，无类别前缀）
+│           ├── asset.json          资产契约实例（asset.v2）
+│           ├── source.json         来源与复现信息（source.v2）
+│           ├── model.glb           引擎无关标准模型（1u = 1m，bottom-center，+Y up / -Z forward）
+│           ├── preview.png         512×512 三视角四分之三预览
+│           └── lods/               可选：分级细节
+│
+├── assemblies/              ① 存储层 · L0 建筑装配清单（权威 JSON，非网格）
+│   └── .gitkeep                    占位：等第一批装配清单落位
+│
+├── materials/              ① 存储层 · 跨 kit 共享材质
+│   └── .gitkeep                    占位
+│
+├── blobs/                      内容寻址的去重二进制存储（git 忽略，可重建）
+│   └── .gitkeep
+│
+├── inbox/                      与 GBE-Studio 的交接目录（`<asset-id>@<version>/`）
+│   └── .gitkeep                    intake 完成后 move 到 _archive/，禁止 rm
+│
+├── _archive/                   历史版本 + 已处理 inbox（只读留档）
+│   └── .gitkeep
+│
+├── services/               ③ 服务层（intake / derive / catalog / assembly / publish）
+│   └── .gitkeep                    占位
+├── apps/                   ④ Web 界面（浏览 / 下载 / 装配视图）
+│   └── .gitkeep                    占位
+├── clients/                ④ 引擎客户端与 CLI
+│   └── .gitkeep                    占位
+├── tools/                      独立工具脚本
+│   └── .gitkeep                    占位
+│
+├── docs/
+│   ├── DECISIONS.md         ★   决策台账（ADR-0001 ~ 0006）—— 为什么这么定
+│   ├── CONVENTIONS.md       ★   双库共享约定 v1.2 —— 因此必须怎么做
+│   ├── PLAN.md                  仓储端完整方案（架构 / 契约 / 检索 / 下载 / 入库 / 路线图）
+│   └── CONVENTIONS-REVIEW.md    对齐前的审查存档 + 31 项处置记录（历史，非待办）
+│
+└── scripts/                ★   仓库自身工具
+    ├── version.js               版本工具：show / log / bump / check
+    ├── install-hooks.js         启用 Git 钩子（core.hooksPath）
+    └── hooks/
+        └── pre-push             推送前强制校验版本号与更新日志
+```
+
+> **图例**：★ = 真源或关键文件；`（权威）` = 不可由脚本重新生成；其余为可重建缓存或占位。
+
+---
+
+## 版本与更新日志
+
+**每次推送都必须带版本号与新日志条目。** 这条纪律由工具链保障，不靠自觉。
+
+| 角色 | 文件 |
+|---|---|
+| 版本号**真源** | [`VERSION`](VERSION)（单行 `MAJOR.MINOR.PATCH`） |
+| 变更内容**真源** | [`CHANGELOG.md`](CHANGELOG.md) |
+| 版本**镜像** | 各 `package.json` 的 `version`（若有，由脚本同步） |
+
+```bash
+node scripts/version.js show                  # 当前版本
+node scripts/version.js log 5                 # 最近 5 个版本条目
+node scripts/version.js bump patch "修了 X" "调了 Y"   # 升版本 + 写日志
+node scripts/version.js bump minor --dry-run "只预览不落盘"
+node scripts/version.js check                 # ★ 一致性校验（推送前必过）
+node scripts/version.js sync                  # 只对齐镜像，不动版本、不写日志
+```
+
+**先启用钩子**（一次即可）：
+
+```bash
+node scripts/install-hooks.js     # → git config core.hooksPath scripts/hooks
+```
+
+之后每次 `git push` 都会自动先跑 `check`，**没升版本就推不上去**：
+
+- `VERSION` 是否合法语义化版本
+- `CHANGELOG.md` 最新条目是否 == `VERSION`
+- `package.json` 版本镜像是否一致
+- **自上个版本以来是否存在「没被记录的变更」** —— 用 git 基线机械判定，改了多少文件就管多少个
+
+确知不需升版本时（应写明理由）：`GBE_SKIP_VERSION_CHECK=1 git push`
+
+版本号怎么取 —— 见 [`CHANGELOG.md`](CHANGELOG.md) 顶部的段位表。
 
 ---
 
@@ -39,23 +163,6 @@ if (!r.ok) console.error(r.errors);
 
 ---
 
-## 仓库结构
-
-| 路径 | 说明 |
-|---|---|
-| `catalog/schema/` | ★ **契约真源**（asset.v2 / source.v2 / assembly.v2 / kit / collection） |
-| `catalog/ports.json` | ★ **全项目端口唯一真源**（含 studio 侧桥端口） |
-| `catalog.config.json` | 默认预算 / 模数 / 预览规格的兜底值 |
-| `packages/schema/` | ★ `@gbe/schema` —— 双库共用的校验器（语法单源） |
-| `kits/<kit>/` | 资产实体（folder-per-asset）+ `kit.json`（模数与预算真源） |
-| `assemblies/` | L0 建筑的装配清单（权威 JSON，非网格） |
-| `materials/` | 跨 kit 共享材质 |
-| `inbox/` | 与 GBE-Studio 的交接目录（`<asset-id>@<version>/`） |
-| `_archive/` | 历史版本 + 已处理 inbox（只读留档） |
-| `services/` · `apps/` · `clients/` · `tools/` | 服务层 / Web 与 CLI / 引擎客户端 / 工具脚本 |
-
----
-
 ## 文档（读之前先读这个顺序）
 
 | 文档 | 作用 |
@@ -63,6 +170,7 @@ if (!r.ok) console.error(r.errors);
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。ADR-0001 ~ 0006 已生效 |
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.2** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
 | [`docs/PLAN.md`](docs/PLAN.md) | 仓储端完整方案（架构 · 契约 · 检索 · 下载 · 入库 · 路线图） |
+| [`CHANGELOG.md`](CHANGELOG.md) | 更新日志（版本号的真源伴随物） |
 | [`docs/CONVENTIONS-REVIEW.md`](docs/CONVENTIONS-REVIEW.md) | 对齐前的审查存档（历史，非待办） |
 | `gbe-studio/docs/BUILDING-DECOMPOSITION.md` | 场景建筑拆分细化方案（拆分层） |
 
@@ -85,7 +193,7 @@ if (!r.ok) console.error(r.errors);
 
 ## 许可
 
-- **代码**（`services/` `apps/` `clients/` `packages/` `tools/`）：MIT —— 见 `LICENSE`
+- **代码**（`services/` `apps/` `clients/` `packages/` `tools/` `scripts/`）：MIT —— 见 `LICENSE`
 - **资产**（`kits/` `materials/` `assemblies/`）：CC0-1.0 —— 见 `LICENSE-ASSETS`
 
 每件资产在 `asset.json` 中以 SPDX 标识符显式声明许可，**不允许留空**。

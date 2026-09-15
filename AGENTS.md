@@ -13,11 +13,12 @@
 | 改分类 / 材质 / 标签 | `catalog/schema/asset.v2.schema.json` |
 | 改端口 | `catalog/ports.json`（**全项目唯一真源**） |
 | 改面数预算 | `kits/<kit>/kit.json` → `budgets` |
+| 改版本号 / 写更新日志 | `VERSION` + `CHANGELOG.md`，走 `node scripts/version.js`（**别手改**） |
 | 不确定"为什么这么定" | `docs/DECISIONS.md`（ADR） |
 
 ---
 
-## 2. 五条不可违反的纪律
+## 2. 六条不可违反的纪律
 
 1. **真源优先，镜像从属**
    `CONVENTIONS.md` 里的枚举表 / 数值表 / 类型表都是**人类可读镜像**。
@@ -40,6 +41,13 @@
    删文件 / 覆盖资产 / 批量导入 / 改 history —— 先输出受影响清单，等确认。
    投递目录一律 **move 归档**，**禁止 `rm -rf`**。
 
+6. **推送即发布：版本号与更新日志必须跟上**
+   每次 `git push` 前先跑 —— `node scripts/version.js bump <major|minor|patch> "这次改了什么"`，
+   让 `VERSION` 与 `CHANGELOG.md` 一起进这次提交。
+   **禁止**在没有新版本条目的情况下推送（`scripts/hooks/pre-push` 会拦下）。
+   段位怎么取见 `CHANGELOG.md` 顶部表；确知不需升版本时用
+   `GBE_SKIP_VERSION_CHECK=1 git push`，并在提交信息里写明理由。
+
 ---
 
 ## 3. 改代码时的常见陷阱
@@ -58,6 +66,9 @@
 
 ## 4. 自检清单（提交前）
 
+- [ ] `node scripts/version.js check` 通过（版本号 / 更新日志 / 镜像一致，**无未记录变更**）
+- [ ] 本次改动已写进 `CHANGELOG.md` 的新条目，且摘要是人话（不是"更新代码"）
+- [ ] 首次 clone 后跑过 `node scripts/install-hooks.js`（启用 pre-push 校验）
 - [ ] `node packages/schema/test/smoke.js` 全绿
 - [ ] 改过 schema 的话：`CONVENTIONS.md` 镜像表同步了，两份 PLAN 也同步了
 - [ ] 新增字段：schema 里加了，`CONVENTIONS` 里说明了语义，示例也更新了
