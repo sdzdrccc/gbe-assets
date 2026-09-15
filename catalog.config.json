@@ -1,0 +1,51 @@
+{
+  "$comment": "GBE-Assets 全库配置。面数预算 / 模数的【默认兜底值】——真源优先级：kits/<kit>/kit.json > 本文件。catalog/schema 的分类枚举是本文件的上级真源。",
+  "config_version": "1",
+  "default_kit": "cn-ancient",
+  "units": {
+    "length": "m",
+    "unit_per_meter": 1
+  },
+  "axis": {
+    "up": "+Y",
+    "forward": "-Z",
+    "pivot": "bottom-center",
+    "dimensions_order": ["x_width", "y_height", "z_depth"]
+  },
+  "budgets": {
+    "$comment": "三角面数（tris）。人类可读镜像见 CONVENTIONS §3.2。",
+    "primitive": 5000,
+    "component": 20000,
+    "mass": 50000,
+    "hero": 100000
+  },
+  "grid_default": {
+    "$comment": "无 kit 声明时的兜底模数。人类可读镜像见 CONVENTIONS §3.3。",
+    "snap_m": 0.5,
+    "wall_module_m": 2,
+    "story_heights_m": [3, 4],
+    "pillar_spacing_m": [2, 4],
+    "ground_tile_m": 2
+  },
+  "preview": {
+    "size_px": 512,
+    "background": "white",
+    "view": "three-quarter",
+    "yaw_deg": 45,
+    "pitch_deg": 30,
+    "focal_mm_equiv": 50
+  },
+  "engines": {
+    "$comment": "启用状态真源在 gbe-studio/core/registry/engines.json；此处仅声明本库可派生哪些包装。",
+    "enabled": ["godot", "unreal"],
+    "deferred": ["unity"]
+  },
+  "services": {
+    "api_port": 8788,
+    "web_port": 8789
+  },
+  "validate": {
+    "reject_v1_packages": true,
+    "$comment": "ADR-0001：schema_version 缺失或为 '1' 一律拒收，不静默兼容。"
+  }
+}

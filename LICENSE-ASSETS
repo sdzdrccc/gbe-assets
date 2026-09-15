@@ -1,0 +1,30 @@
+GBE-Assets —— 资产部分许可
+================================
+
+适用范围：`kits/` · `materials/` · `assemblies/`（模型、材质、装配清单与相关元数据）
+
+本仓库的资产部分采用 **CC0 1.0 Universal（Public Domain Dedication）**。
+
+    SPDX-License-Identifier: CC0-1.0
+
+在法律允许的范围内，作者已将本作品的所有著作权及相关权利放弃，
+将其贡献至公共领域。本作品按"原样"提供，不提供任何形式的担保。
+
+CC0 1.0 完整法律文本：
+  https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+---
+
+## 声明
+
+1. **逐件声明优先**：每件资产在其 `asset.json` 的 `license` 字段中以 SPDX 标识符
+   显式声明许可。该字段与本节冲突时，**以 `asset.json` 为准**。
+2. **无法确定时**：填 `NOASSERTION` 并打 `needs-review` 标记 —— 不允许留空。
+3. **AI 生成资产**：本库中的资产由 AI 生成平台产出
+   （Tripo / Meshy / 腾讯混元3D / fal.ai），来源记录在各资产的 `source.json`
+   的 `provenance` 字段中。**再分发前请确认对应平台的条款。**
+4. **无账号信息**：`source.json` 只记录 `task_id` 与平台名，不记录账号、token、Cookie。
+
+---
+
+适用范围：本仓库中的代码部分采用 MIT，见 `LICENSE`。

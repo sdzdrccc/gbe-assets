@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gbe.dev/schema/asset.v2.json",
+  "title": "GBE Asset v2",
+  "description": "GBE 资产元数据契约 v2 —— ★ 分类枚举与字段的机器可读真源。CONVENTIONS.md 中的表格均为人类可读镜像，必须与本文件一致（CI 校验）。字段语义见 CONVENTIONS §1–§12、§19。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "name", "version", "status",
+    "kit", "category", "tier", "granularity",
+    "geometry", "files", "materials", "license"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2",
+      "description": "契约版本。缺失或为 \"1\" 一律拒收（ADR-0001），不静默兼容。"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "<kit>.<category-leaf>.<name>，全小写 kebab-case。name 段必须严格等于资产目录名（CONVENTIONS §2.2）。"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "资产版本（不是契约版本），语义化，首次入库 1.0.0。"
+    },
+    "status": {
+      "enum": ["draft", "needs-review", "published", "deprecated"],
+      "description": "生命周期。与 flags 正交（CONVENTIONS §6）。"
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["needs-material-review", "refine-unreproducible", "socket-unverified"] },
+      "description": "并行标记，不占 status 取值（CONVENTIONS §6）。"
+    },
+    "kit": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "category": {
+      "description": "分类全集（镜像 CONVENTIONS §4）。assemblies/* 由 assembly.v2 单独承载。",
+      "enum": [
+        "components/roof",
+        "components/wall",
+        "components/pillar",
+        "components/beam",
+        "components/bracket",
+        "components/base",
+        "components/door-window",
+        "components/railing",
+        "components/ornament",
+        "buildings/residential",
+        "buildings/commercial",
+        "buildings/palace",
+        "buildings/garden",
+        "buildings/religious",
+        "buildings/infrastructure",
+        "props/lighting",
+        "props/street",
+        "props/ritual",
+        "props/furniture",
+        "props/cultivation",
+        "nature/tree",
+        "nature/rock",
+        "nature/plant",
+        "terrain/ground-tile",
+        "terrain/cliff",
+        "terrain/water"
+      ]
+    },
+    "tier": {
+      "enum": ["primitive", "component", "mass", "hero"],
+      "description": "质量/预算档位。面数预算真源：kits/<kit>/kit.json > catalog.config.json。"
+    },
+    "granularity": {
+      "enum": ["L0", "L1", "L2", "L3"],
+      "description": "几何粒度，与 tier 正交（CONVENTIONS §19.1）。L0 整栋 / L1 部位 / L2 构件 / L3 装饰。"
+    },
+    "grid_exempt": {
+      "type": "boolean",
+      "description": "true 表示豁免模数对齐校验（仅 L3 装饰件或 attach 类构件允许）。"
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 2, "maxLength": 12 }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensions_m", "pivot", "axis", "polycount"],
+      "properties": {
+        "dimensions_m": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "minimum": 0 },
+          "description": "轴序写死为 [x 宽, y 高, z 深]（CONVENTIONS §1）。禁止自由解释。"
+        },
+        "pivot": { "const": "bottom-center" },
+        "axis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["up", "forward"],
+          "properties": {
+            "up": { "const": "+Y" },
+            "forward": { "const": "-Z" }
+          }
+        },
+        "polycount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "三角面数（tris），非多边形数。"
+        },
+        "vertices": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model"],
+      "properties": {
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lod0"],
+          "properties": {
+            "lod0": { "type": "string", "minLength": 1 },
+            "lod1": { "type": "string", "minLength": 1 },
+            "lod2": { "type": "string", "minLength": 1 }
+          }
+        },
+        "preview": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "collision": { "type": ["string", "null"] }
+      }
+    },
+    "shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "has_uv": { "type": "boolean" },
+        "manifold": { "type": "boolean" },
+        "solidified": { "type": "boolean" }
+      }
+    },
+    "materials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slots"],
+      "properties": {
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["slot", "ref"],
+            "properties": {
+              "slot": {
+                "enum": ["roof", "wall", "pillar", "beam", "bracket", "base", "door", "window", "railing", "ornament", "ground", "trim"],
+                "description": "槽名词表，镜像 CONVENTIONS §5.1。新增槽名须同步此处。"
+              },
+              "ref": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "description": "<group>/<name>，如 roof-tile/qingwa。"
+              }
+            }
+          }
+        },
+        "embedded_textures": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "collision": {
+      "enum": ["box", "convex", "none"],
+      "description": "box = AABB 由引擎适配器生成；convex = 显式网格见 files.collision。"
+    },
+    "sockets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "type": {
+            "enum": ["ground-foot", "stack-up", "wall-line", "pillar-point", "roof-seat", "ridge-point", "attach", "continue", "custom"],
+            "description": "类型表见 CONVENTIONS §9.1。"
+          },
+          "position_m": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": { "type": "number" },
+            "description": "相对 bottom-center 轴心的局部坐标（+X 右 / +Y up / +Z 后）。必须落 snap_m 网格（attach 除外）。"
+          },
+          "direction": {
+            "enum": ["+x", "-x", "+y", "-y", "+z", "-z"],
+            "description": "对接件的【接入方向】（接口外法线），不是资产正面朝向。"
+          },
+          "mate_types": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "enum": ["ground-foot", "stack-up", "wall-line", "pillar-point", "roof-seat", "ridge-point", "attach", "continue", "custom"] }
+          },
+          "step_m": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "仅 type=continue 时必填：沿 direction 的重复步距。"
+          },
+          "grid_locked": { "type": "boolean" },
+          "note": { "type": "string" }
+        },
+        "oneOf": [
+          {
+            "description": "continue 类型必须声明 step_m",
+            "properties": { "type": { "const": "continue" } },
+            "required": ["step_m"]
+          },
+          {
+            "description": "非 continue 类型",
+            "properties": {
+              "type": { "enum": ["ground-foot", "stack-up", "wall-line", "pillar-point", "roof-seat", "ridge-point", "attach", "custom"] }
+            },
+            "required": ["name", "type"]
+          }
+        ]
+      }
+    },
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": { "enum": ["material-swap", "tint", "mirror", "scale"] },
+          "detail": { "type": "string" }
+        }
+      },
+      "description": "权威形态即此内联数组，不另建 variants.json（CONVENTIONS §8）。"
+    },
+    "engines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "godot": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "scene": { "type": "string" },
+            "import_scale": { "type": "number" }
+          }
+        },
+        "unreal": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "scale": { "type": "number", "description": "UE 用 cm，通常 100。" },
+            "rotation": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+            "up_axis": { "enum": ["x", "y", "z"], "description": "转由引擎导入器负责；此处仅声明。" }
+          }
+        },
+        "unity": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Unity 延后（ADR-0004）：字段为可选保留，不因未启用而删除。",
+          "properties": {
+            "scale": { "type": "number" },
+            "rotation": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+            "up_axis": { "enum": ["x", "y", "z"] }
+          }
+        }
+      }
+    },
+    "deps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPDX 标识符，不允许留空；无法确定时填 NOASSERTION。"
+    },
+    "author": { "type": "string", "minLength": 1 },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "仅上传兜底路径写入 suggested_*；人工确认前不覆盖权威字段（CONVENTIONS §14）。"
+    },
+    "deprecated_by": {
+      "type": "string",
+      "description": "status=deprecated 时，本字段或 deprecated_reason 必填其一。"
+    },
+    "deprecated_reason": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "description": "status=deprecated 时必须给出 deprecated_by 或 deprecated_reason（CONVENTIONS §6）。",
+      "anyOf": [
+        {
+          "properties": { "status": { "const": "deprecated" } },
+          "anyOf": [
+            { "required": ["deprecated_by"] },
+            { "required": ["deprecated_reason"] }
+          ]
+        },
+        {
+          "properties": { "status": { "enum": ["draft", "needs-review", "published"] } },
+          "required": ["status"]
+        }
+      ]
+    }
+  ]
+}

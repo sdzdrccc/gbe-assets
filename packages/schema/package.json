@@ -1,0 +1,22 @@
+{
+  "name": "@gbe/schema",
+  "version": "0.1.0",
+  "description": "GBE 双库共用的资产契约校验包 —— 语法校验单源实现（CONVENTIONS §0.2）。零依赖，离线可跑。",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "validate.js"
+  ],
+  "scripts": {
+    "test": "node test/smoke.js"
+  },
+  "keywords": [
+    "gbe",
+    "schema",
+    "validator"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

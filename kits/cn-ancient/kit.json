@@ -1,0 +1,82 @@
+{
+  "id": "cn-ancient",
+  "name": "中国传统古建",
+  "version": "1.0.0",
+  "description": "中国传统建筑构件与建筑套件。服务于「虬渊大陆 / 万安城」场景。模数与预算的真源。",
+
+  "categories": [
+    "components/roof",
+    "components/wall",
+    "components/pillar",
+    "components/beam",
+    "components/bracket",
+    "components/base",
+    "components/door-window",
+    "components/railing",
+    "components/ornament",
+    "buildings/palace",
+    "buildings/residential",
+    "buildings/commercial",
+    "buildings/religious",
+    "buildings/garden",
+    "buildings/infrastructure",
+    "props/lighting",
+    "props/street",
+    "props/ritual",
+    "props/furniture",
+    "nature/tree",
+    "nature/rock",
+    "nature/plant",
+    "terrain/ground-tile",
+    "assemblies/building"
+  ],
+
+  "grid": {
+    "$comment": "★ 模数真源（CONVENTIONS §3.3 为其人类可读镜像）。snap_m 是定位网格，snap_m/2 是造型网格。",
+    "snap_m": 0.5,
+    "wall_module_m": 2,
+    "story_heights_m": [3, 4],
+    "pillar_spacing_m": [2, 4],
+    "ground_tile_m": 2
+  },
+
+  "budgets": {
+    "$comment": "★ 面数预算真源（三角面）。CONVENTIONS §3.2 为其人类可读镜像。",
+    "primitive": 5000,
+    "component": 20000,
+    "mass": 50000,
+    "hero": 100000
+  },
+
+  "materials": {
+    "$comment": "★ 材质组真源（CONVENTIONS §5.1）。id 形如 <group>/<name>。",
+    "roof-tile": ["qingwa", "liuli-huang", "liuli-lu", "tongwa-hui"],
+    "timber": ["hong-mu", "zhu-hong", "ben-se", "hei-qi"],
+    "stone": ["qing-shi", "bai-shi", "han-bai-yu"],
+    "metal": ["tong-liu-jin", "tie-hei"],
+    "earth": ["hang-tu", "qing-zhuan"],
+    "textile": ["zhu-lian"]
+  },
+
+  "axis": {
+    "$comment": "冗余声明。值必须等于 CONVENTIONS §1，不一致以 §1 为准并报错。",
+    "up": "+Y",
+    "forward": "-Z",
+    "dimensions_order": ["x_width", "y_height", "z_depth"]
+  },
+  "pivot": "bottom-center",
+
+  "coverage": {
+    "$comment": "派生快照（可重建），由 gbe reindex 生成。库从空开始（ADR-0001），当前全为 0。",
+    "components/roof": { "done": 0, "planned": 13 },
+    "components/wall": { "done": 0, "planned": 3 },
+    "components/pillar": { "done": 0, "planned": 4 },
+    "components/beam": { "done": 0, "planned": 5 },
+    "components/bracket": { "done": 0, "planned": 3 },
+    "components/base": { "done": 0, "planned": 5 },
+    "components/door-window": { "done": 0, "planned": 4 },
+    "components/railing": { "done": 0, "planned": 2 },
+    "components/ornament": { "done": 0, "planned": 6 },
+    "assemblies/building": { "done": 0, "planned": 8 }
+  }
+}

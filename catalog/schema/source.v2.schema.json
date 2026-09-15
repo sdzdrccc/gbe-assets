@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gbe.dev/schema/source.v2.json",
+  "title": "GBE Source v2",
+  "description": "GBE 溯源契约 v2。记录「这件资产是怎么来的」：平台、通道、模型、提示词、成本、精修配方。字段语义见 CONVENTIONS §8 / §12。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "provenance", "refine", "created_at"],
+  "properties": {
+    "schema_version": { "const": "2" },
+
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "mode"],
+      "properties": {
+        "provider": {
+          "enum": ["tripo", "meshy", "hunyuan3d", "fal", "procedural", "manual"],
+          "description": "procedural = 程序化生成（primitive 构件，无平台成本）；manual = 无 API 溯源的人工产出。"
+        },
+        "channel": {
+          "enum": ["default", "tokenhub", "tencentcloud", "web"],
+          "description": "多通道平台的实际通道（ADR-0003）。单通道平台填 default。"
+        },
+        "model": { "type": "string", "minLength": 1 },
+        "mode": {
+          "enum": ["text", "image", "multiview", "remesh", "retexture", "rig", "procedural", "manual"]
+        },
+        "prompt": { "type": "string" },
+        "negative_prompt": { "type": "string" },
+        "seed": { "type": ["integer", "null"] },
+        "task_id": {
+          "type": ["string", "null"],
+          "description": "只记 task_id，不记账号信息。web 通道允许 null（CONVENTIONS §13）。"
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "value": { "type": "number", "minimum": 0 },
+            "unit": { "enum": ["credit", "usd", "cny", "unknown"] },
+            "usd_est": { "type": "number", "minimum": 0 }
+          }
+        },
+        "raw_ref": {
+          "type": "string",
+          "description": "Studio 侧引用（如 raw/hunyuan3d_out.glb）。不保证库内存在，Assets 不得据此定位。"
+        },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "refine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recipe_id"],
+      "properties": {
+        "recipe_id": { "type": "string", "minLength": 1 },
+        "recipe_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$",
+          "description": "16 位 hex，覆盖 steps + qa + recipe_id + Blender 主版本（CONVENTIONS §7.1）。"
+        },
+        "blender": { "type": "string" },
+        "manual": { "type": "boolean" },
+        "note": {
+          "type": "string",
+          "description": "人可读操作摘要，不进 hash（CONVENTIONS §7.2）。"
+        }
+      }
+    },
+
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 带时区。"
+    }
+  },
+  "allOf": [
+    {
+      "description": "非 manual 的精修必须给出 recipe_hash；manual=true 时豁免（此时资产会被打 refine-unreproducible）。",
+      "anyOf": [
+        { "properties": { "refine": { "required": ["manual"], "properties": { "manual": { "const": true } } } } },
+        { "properties": { "refine": { "required": ["recipe_hash"] } } }
+      ]
+    }
+  ]
+}

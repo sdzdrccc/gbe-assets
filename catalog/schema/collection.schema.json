@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gbe.dev/schema/collection.json",
+  "title": "GBE Collection",
+  "description": "人工策展的合辑（场景级组合，如「万安城 - 街景 MVP 30 件」）。合辑是【引用集】，不复制资产。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name", "items"],
+  "properties": {
+    "schema_version": { "const": "2" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "curator": { "type": "string" },
+    "target_engine": { "enum": ["godot", "unreal", "any"] },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string", "minLength": 3, "description": "资产 id 或装配清单 id。" },
+          "version": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

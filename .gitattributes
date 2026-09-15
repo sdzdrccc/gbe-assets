@@ -1,0 +1,20 @@
+# 统一换行：仓库内存 LF，检出时按平台处理
+* text=auto eol=lf
+
+# 二进制 —— 不做换行转换，也不做 diff
+*.glb   binary
+*.gltf  binary
+*.fbx   binary
+*.obj   binary
+*.usdz  binary
+*.blend binary
+*.png   binary
+*.jpg   binary
+*.webp  binary
+*.exr   binary
+*.db    binary
+
+# 派生/生成物 —— 折叠 diff，避免污染评审
+catalog/index.db      -diff
+bridges/registry.json linguist-generated=true
+package-lock.json     linguist-generated=true

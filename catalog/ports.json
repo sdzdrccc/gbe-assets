@@ -1,0 +1,82 @@
+{
+  "$comment": "★ 全项目端口【唯一真源】（CONVENTIONS §18）。gbe-studio/bridges/registry.json 是从本文件生成/校验的只读视图，禁止成为第二真源。修改端口只改这里，然后跑 studio 的 `node bridges/sync-ports.js`。",
+  "ports_version": "1",
+  "updated_at": "2026-09-15",
+  "owner": "gbe-assets",
+  "ports": [
+    {
+      "id": "godot-mcp",
+      "port": 9876,
+      "protocol": "tcp",
+      "owner": "gbe-studio",
+      "purpose": "Godot 编辑器桥（godot-mcp 客户端写死，不可改）",
+      "required": true
+    },
+    {
+      "id": "blender-mcp",
+      "port": 9877,
+      "protocol": "tcp",
+      "owner": "gbe-studio",
+      "purpose": "Blender MCP（与 Godot 错开）",
+      "required": true
+    },
+    {
+      "id": "unreal-python-remote-exec",
+      "port": 6776,
+      "protocol": "udp",
+      "owner": "gbe-studio",
+      "purpose": "UE5 Python Remote Execution（sam-david/unreal-mcp 首选实现）",
+      "required": false
+    },
+    {
+      "id": "unreal-remote-control",
+      "port": 30010,
+      "protocol": "http",
+      "owner": "gbe-studio",
+      "purpose": "UE5 Remote Control API",
+      "required": false
+    },
+    {
+      "id": "unreal-mcp-alt-chir24",
+      "port": 8091,
+      "protocol": "ws",
+      "owner": "gbe-studio",
+      "purpose": "UE5 备选 MCP 实现 ChiR24/Unreal_mcp（仅该实现被选为 active 时占用）",
+      "required": false
+    },
+    {
+      "id": "unreal-mcp-alt-aadeshrao123",
+      "port": 55557,
+      "protocol": "tcp",
+      "owner": "gbe-studio",
+      "purpose": "UE5 备选 MCP 实现 aadeshrao123/Unreal-MCP + ue-cli（仅该实现 active 时占用）",
+      "required": false
+    },
+    {
+      "id": "unity-mcp",
+      "port": 8080,
+      "protocol": "http",
+      "owner": "gbe-studio",
+      "purpose": "Unity MCP —— 预留，当前不占用",
+      "required": false,
+      "status": "deferred",
+      "note": "ADR-0004：Unity 延后。端口保留以免将来冲突。"
+    },
+    {
+      "id": "gbe-assets-api",
+      "port": 8788,
+      "protocol": "http",
+      "owner": "gbe-assets",
+      "purpose": "GBE-Assets REST API",
+      "required": true
+    },
+    {
+      "id": "gbe-assets-web",
+      "port": 8789,
+      "protocol": "http",
+      "owner": "gbe-assets",
+      "purpose": "GBE-Assets 浏览下载站",
+      "required": true
+    }
+  ]
+}

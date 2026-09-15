@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gbe.dev/schema/assembly.v2.json",
+  "title": "GBE Assembly v2",
+  "description": "GBE 装配清单契约 v2（L0 建筑）。声明「一栋建筑由哪些构件、以什么插槽绑定拼成」。清单是权威，烘焙网格是派生物（CONVENTIONS §19.4 / §19.6）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name", "kit", "category", "granularity", "instances"],
+  "properties": {
+    "schema_version": { "const": "2" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "<kit>.assembly.<name>"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "kit": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "category": {
+      "enum": ["assemblies/building", "assemblies/district"],
+      "description": "装配分类全集（镜像 CONVENTIONS §4 中 assemblies/* 部分）。"
+    },
+    "granularity": { "const": "L0" },
+    "grid_snap_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "本清单使用的定位网格。必须等于 kit.json.grid.snap_m（不在此处重新定义模数）。"
+    },
+    "instances": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["instance_id", "asset", "transform"],
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "本清单内唯一。"
+          },
+          "asset": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "string", "minLength": 3 },
+              "version": {
+                "type": "string",
+                "description": "版本范围（如 ^1.0.0）。解析时取满足范围的最高 published 版本。"
+              }
+            }
+          },
+          "transform": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "position": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+              "rotation": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+              "scale": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          },
+          "sockets": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "单向声明：本件插槽名 → \"对端 instance_id::插槽名\"。校验器验证对端存在反向匹配。"
+          },
+          "count": { "type": "integer", "minimum": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "生成本清单时使用的参数（开间数 / 层数 / 形制等），用于回溯与再生成。"
+    },
+    "derived_from": {
+      "type": ["string", "null"],
+      "description": "若由参数化模板生成，记模板 id。"
+    },
+    "scene_budget": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "装配总面数预算：{ lod0, lod1, proxy }。超预算由装配校验报警。"
+    }
+  }
+}

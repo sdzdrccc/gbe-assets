@@ -1,0 +1,52 @@
+# ---- 本机配置（绝不入库，见 CONVENTIONS §13）----
+gbe.config.json
+config.json
+*.local.json
+
+# ---- 凭证（永不进 Git / 对话 / 日志）----
+credentials.json
+.env
+.env.*
+*secret*
+*token*
+*.pem
+*.key
+
+# ---- 索引与派生缓存（可重建，CONVENTIONS §11）----
+catalog/index.db
+catalog/index.db-journal
+catalog/index.db-wal
+blobs/
+materials/index.json
+baked/
+draco/
+textures/
+turntable/
+
+# 派生：引擎包装 / 变体展开 / webp 预览
+engines/**
+!engines/.gitkeep
+variants/
+preview.webp
+
+# ---- inbox / 临时 ----
+inbox/**
+!inbox/.gitkeep
+tmp/
+temp/
+*.tmp
+*.log
+
+# ---- Node ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
