@@ -19,6 +19,23 @@
 
 ## [未发布]
 
+## [0.5.1] - 2026-10-12
+
+### 修正
+
+- **`kits/cn-ancient/kit.json` 的 `coverage.components/roof.planned` 由 13 改 18**，`planned` 加总由 **45 改 50**。原因：真源 `gbe-studio/BUILDING-DECOMPOSITION.md` §9.2 补入了 5 件屋顶样式件（硬山 / 悬山 / 攒尖 / 庑殿 / 盝顶），而 `planned` 是**人工维护的分母**（`tools/intake.js` 只刷 `done`、不动 `planned`）—— 它此前与 §9.2 同源双写、且已经漂了。**后果是可见的**：`planned` 停在 45 时，Web 端覆盖度视图会显示屋顶"已规划 13 / 已齐"，把 5 件必生成件当成不存在，§7 的"覆盖度缺口驱动生产排期"随之失真。
+- **`kit.json.description` 删除「万安城」**：改为「服务于『虬渊大陆 · 北桢洲』场景（M4 首批 = 槐阴村，远期 = 城邑）」。该场景名在设定库 `虬渊大陆` **0 命中**（大人裁决删除）；`BUILDING-DECOMPOSITION` §9.4 已把 M4 落到槐阴村，城邑具体是哪座（`青麓城` / `太华仙城`）由 guild 定。
+  ⚠️ **未改的残留（登记待办，不在本次动）**：已发布资产 id `cn-ancient.assembly.wanan-wall-corner-a` 与文件名 `assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json` 仍带 `wanan-` 前缀 —— **id 不可变**，改名属破坏性变更，须另开 ADR + 发版。
+- **8 个类别仍是"列了名、没规划"**（本次只如实记录，未填数）：`categories` 里有 `props/{lighting,street,ritual,furniture}`、`nature/{tree,rock,plant}`、`terrain/ground-tile`，但 `coverage` 里**连 `planned` 键都没有** = 从未规划。M4 是**村落**场景，地面 / 树 / 山石 / 道具 / 演出法器（八系测灵盘）全在这些类别里 —— 缺口形状见 `BUILDING-DECOMPOSITION` §9.4，件集须另开卡定。
+
+### 验证
+
+- `node packages/schema/test/smoke.js` → **37 通过 / 0 失败**。
+- `node gbe-studio/build/convergence/reconcile.js`（§9.2 ↔ `forms.js` ↔ `kit.json` 三方对账）→ **全绿**：50 类构件 · `planned` 逐类别吻合 · P 18 == 在库 18 · B 5 == 未入库 hero 专属件 · §9.1 数量 == `forms.count` · 合计 28 栋。
+
+### 变更
+- kit.json 的 roof planned 13→18（补 §9.2 新增的 5 件屋顶样式件，分母加总 45→50）· 场景描述去「万安城」改指北桢洲与 M4 槐阴村
+
 ## [0.5.0] - 2026-09-15
 
 ### 新增

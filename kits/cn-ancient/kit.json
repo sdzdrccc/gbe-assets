@@ -2,7 +2,7 @@
   "id": "cn-ancient",
   "name": "中国传统古建",
   "version": "1.0.0",
-  "description": "中国传统建筑构件与建筑套件。服务于「虬渊大陆 / 万安城」场景。模数与预算的真源。",
+  "description": "中国传统建筑构件与建筑套件。服务于「虬渊大陆 · 北桢洲」场景（M4 首批 = 槐阴村，远期 = 城邑，场景真源见 BUILDING-DECOMPOSITION §9.1/§9.4）。模数与预算的真源。",
   "categories": [
     "components/roof",
     "components/wall",
@@ -96,7 +96,7 @@
     "$comment": "派生快照（可重建）。由 tools/intake.js 入库时刷新，等价于 gbe reindex；禁止手工维护。",
     "components/roof": {
       "done": 6,
-      "planned": 13
+      "planned": 18
     },
     "components/wall": {
       "done": 2,
