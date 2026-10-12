@@ -349,7 +349,7 @@ ok('负例：instance_id 不得用下划线', () => {
   assert.ok(!r.valid);
 });
 
-ok('正例：kit.json 通过（grid 与 budgets 齐备）', () => {
+ok('正例（**合成夹具**）：kit 的最小合规形状 —— 注意它不代表真源已过 schema', () => {
   const r = gbe.validateKit({
     id: 'cn-ancient',
     name: '中国传统古建',
@@ -358,6 +358,25 @@ ok('正例：kit.json 通过（grid 与 budgets 齐备）', () => {
     materials: { 'roof-tile': ['qingwa', 'liuli-huang'] },
   });
   assert.ok(r.valid, JSON.stringify(r.errors));
+});
+
+// ★ 上一条是**手工合成的夹具，刻意不含 `$comment`** —— 它与真源分叉，恰好把 A-1 掩盖掉：
+//   真源 `kits/cn-ancient/kit.json` 在 `grid` / `budgets` / `materials` 三处都带 `$comment`，
+//   而 `kit.schema.json` 对 `grid` / `budgets` 设了 `additionalProperties: false`。
+//   所以「smoke 全绿」从来不等价于「模数与预算的真源合自己的契约」。本条把真源直接喂给校验器。
+// ★★ **本版故意让它红**（大人裁定：只暴露、不裁）—— `$comment` 到底合法（改 schema）还是非法
+//   （把注释移出受约束节点），属**契约变更**，须先开 ADR + 四处同提交；测试不许替那次裁决抢跑。
+//   销号条件：ADR 落地后本条转绿，`CHANGELOG.md` 的「已知红」节随之撤下。
+ok('正例：真源 kits/cn-ancient/kit.json 必须过 kit.schema（★ 已知红 · 待 ADR 裁定 A-1）', () => {
+  const fs = require('fs');
+  const file = path.join(gbe.REPO_ROOT, 'kits', 'cn-ancient', 'kit.json');
+  const r = gbe.validateKit(JSON.parse(fs.readFileSync(file, 'utf8')));
+  assert.ok(
+    r.valid,
+    '真源 kit.json 过不了自己的 schema ⇒ ' +
+      (r.errors || []).map((e) => `${e.path} ${e.message}`).join(' ｜ ') +
+      ' ⇒ 去向：开 ADR 裁定 `$comment` 合法性（见 CHANGELOG「已知红」）'
+  );
 });
 
 ok('负例：kit 缺 budgets 被拦', () => {

@@ -475,8 +475,15 @@ function main(argv) {
     return 2;
   }
   const data = JSON.parse(fs.readFileSync(target, 'utf8'));
-  const gate = gateSchemaVersion(data, path.basename(target));
-  if (!gate.valid) return report(gate);
+  // ★ ADR-0001 的版本闸门只该套在**其 schema 自己要求 `schema_version`** 的类型上。
+  //   `kit.schema.json` 的 `required` 里没有这个字段（kit.json 是仓内元数据，不是交付包），
+  //   而这里此前对所有 kind 一律套闸门 ⇒ `node index.js kit <kit.json>` **恒红**，无论 kit 多合规
+  //   （X-0032 的 A-2）。判据**取自 schema 本身**，不在 CLI 里再写一份类型清单 —— 写清单就是第二份真源。
+  const schema = loadSchema(kind);
+  if ((schema.required || []).includes('schema_version')) {
+    const gate = gateSchemaVersion(data, path.basename(target));
+    if (!gate.valid) return report(gate);
+  }
   return report(validate(kind, data));
 }
 

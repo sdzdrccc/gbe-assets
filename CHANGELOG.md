@@ -19,6 +19,37 @@
 
 ## [未发布]
 
+## [0.5.2] - 2026-10-12
+
+### 修正（`X-0032` 的 A-2 / A-6 ＋ 把 A-1 从暗雷变成红灯）
+
+- **A-2 · `node packages/schema/index.js kit <file>` 此前恒红**：CLI 对**所有** kind 一律套 `gateSchemaVersion`（要求 `schema_version === "2"`），而 `kit.schema.json` 的 `required` 里根本没有这个字段 ⇒ 无论 kit 多合规都 `EXIT=1`。
+  修法**不是写一份"哪些类型免闸门"的清单**（那等于造出第二份真源），而是**由 schema 自己决定**：`(schema.required || []).includes('schema_version')` 才套闸门。
+  实测对照：`kit` → 不再报「缺少 schema_version」，改报**真实原因**（三条 `$comment`）；`collection`（schema 要求该字段）→ 缺 `schema_version` 仍 `EXIT=1` 报原话 ⇒ 闸门没被拆掉，只是不再乱套。
+- **A-6 · `packages/schema/package.json` 的 `files` 补上 `assembly.js`**：`index.js:26` 就 `require('./assembly')`，而打包清单只有 `index.js` / `validate.js` ⇒ `npm pack` 出来的 tarball **发布即坏**（`MODULE_NOT_FOUND`）。
+  ⚠️ **这只补了崩溃，没让本包能独立发布**：`REPO_ROOT`（`index.js:28`）指向包外两级的 `catalog/schema/`，`assembly.js` 还要读 `kits/<kit>/kit.json` 与资产目录 ⇒ 本包**离开 gbe-assets 仓库就无法工作**，这是 `AGENTS.md` 纪律 3（校验器只有一份 · 开发期 `file:` 引用 / CI 期 submodule 锁 commit）的**既有设计**，不是漏洞。要真发布，得把 schema 与仓库解耦，那是另一张卡。
+- **★ A-1 从暗雷变成红灯（大人裁定：只暴露、不裁）**：`test/smoke.js` 原「正例：kit.json 通过」用的是**手工合成、刻意不含 `$comment`** 的夹具 —— 它与真源分叉，正好把「真源过不了自己的 schema」这件事**掩盖**掉。现把该用例**改名为「正例（合成夹具）：… 不代表真源已过 schema」**，并**新增一条真源用例**：直接把 `kits/cn-ancient/kit.json` 喂给 `validateKit`。
+
+### ★ 已知红（本版**故意**带红发布 · 有归口 · 有销号条件）
+
+```
+$ node packages/schema/test/smoke.js
+  ✗ 正例：真源 kits/cn-ancient/kit.json 必须过 kit.schema（★ 已知红 · 待 ADR 裁定 A-1）
+      真源 kit.json 过不了自己的 schema ⇒ $.grid.$comment 不允许的额外字段
+      ｜ $.budgets.$comment 不允许的额外字段 ｜ $.materials.$comment 类型应为 array，实际为 string
+      ⇒ 去向：开 ADR 裁定 `$comment` 合法性（见 CHANGELOG「已知红」）
+结果：37 通过 / 1 失败        EXIT=1
+```
+（实际是**一行**输出，上面按 `｜` 折行只为了可读；错误文本由用例自己拼出，含"缺哪几处"与"去向"。）
+
+- **矛盾点**：`kit.json` 在 `grid` / `budgets` / `materials` / `coverage` / `axis` 五处都用 `$comment` 写"这条为什么这么定"（人读的习惯，且 `tools/intake.js` 还会**主动重写** `coverage.$comment`），而 `kit.schema.json` 对 `grid` / `budgets` 设 `additionalProperties: false`、对 `materials` 要求值为数组 —— **两边必有一边是错的**。
+- **为什么不顺手改**：放开 schema = **契约破坏性变更**，依 `AGENTS.md` 纪律 2 须 `catalog/schema/` ＋ `CONVENTIONS.md` ＋ 两份 `PLAN.md` 同提交，且要先开 ADR；把注释挪出受约束节点 = 改真源数据形状。**两条都属"裁定"，不属"修 bug"**，大人本次只点了「暴露」。
+- **销号条件**：ADR 落地（放开 `$comment` **或** 移出受约束节点）⇒ 本条转绿 ⇒ 撤掉本节。在那之前 `AGENTS.md` §4 的「smoke 全绿」前置**本仓未满足**，记录在案，**不得被后人读成"当时是绿的"**。
+- 其余判据不受影响：`node packages/schema/test/assembly.js` → **通过 27 · 失败 0**；`node scripts/version.js check` → 通过。
+
+### 变更
+- CLI 的 kit 不再乱套版本闸门（A-2，判据改取自 schema）· package files 补 assembly.js（A-6）· 新增真源 kit 用例把 A-1 暴露成红灯（故意带红发布 · 待 ADR）
+
 ## [0.5.1] - 2026-10-12
 
 ### 修正
