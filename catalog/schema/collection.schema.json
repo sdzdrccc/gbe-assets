@@ -5,6 +5,7 @@
   "description": "人工策展的合辑（场景级组合，如「万安城 - 街景 MVP 30 件」）。合辑是【引用集】，不复制资产。",
   "type": "object",
   "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
   "required": ["schema_version", "id", "name", "items"],
   "properties": {
     "schema_version": { "const": "2" },
@@ -19,6 +20,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "patternProperties": { "^\\$": {} },
         "required": ["id"],
         "properties": {
           "id": { "type": "string", "minLength": 3, "description": "资产 id 或装配清单 id。" },

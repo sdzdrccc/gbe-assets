@@ -5,6 +5,7 @@
   "description": "GBE 溯源契约 v2。记录「这件资产是怎么来的」：平台、通道、模型、提示词、成本、精修配方。字段语义见 CONVENTIONS §8 / §12。",
   "type": "object",
   "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
   "required": ["schema_version", "provenance", "refine", "created_at"],
   "properties": {
     "schema_version": { "const": "2" },
@@ -12,6 +13,7 @@
     "provenance": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["provider", "mode"],
       "properties": {
         "provider": {
@@ -36,6 +38,7 @@
         "cost": {
           "type": "object",
           "additionalProperties": false,
+          "patternProperties": { "^\\$": {} },
           "properties": {
             "value": { "type": "number", "minimum": 0 },
             "unit": { "enum": ["credit", "usd", "cny", "unknown"] },
@@ -53,6 +56,7 @@
     "refine": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["recipe_id"],
       "properties": {
         "recipe_id": { "type": "string", "minLength": 1 },

@@ -5,6 +5,7 @@
   "description": "套件元数据。★ 面数预算（budgets）与模数（grid）的真源 —— 优先级高于 catalog.config.json 的默认兜底值。CONVENTIONS §3.2 / §3.3 中的表格是本文件的人类可读镜像。",
   "type": "object",
   "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
   "required": ["id", "name", "grid", "budgets"],
   "properties": {
     "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
@@ -21,6 +22,7 @@
     "grid": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["snap_m", "wall_module_m"],
       "properties": {
         "snap_m": {
@@ -38,6 +40,7 @@
     "budgets": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "description": "三角面数预算。真源；catalog.config.json 仅在 kit 缺失时兜底。",
       "properties": {
         "primitive": { "type": "integer", "minimum": 1 },
@@ -50,6 +53,7 @@
     "materials": {
       "type": "object",
       "additionalProperties": { "type": "array", "items": { "type": "string" } },
+      "patternProperties": { "^\\$": {} },
       "description": "{ <group>: [<name>...] }，如 { \"roof-tile\": [\"qingwa\", \"liuli-huang\"] }。材质组真源。"
     },
 

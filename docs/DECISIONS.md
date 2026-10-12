@@ -4,7 +4,7 @@
 > **变更流程**：新增决策 = 追加条目，**不修改历史条目**；若需推翻，追加一条 `supersedes` 指向旧条目。
 > **与 CONVENTIONS 的关系**：ADR 记录「为什么这么定」；`docs/CONVENTIONS.md` 记录「因此必须怎么做」。ADR 通过后必须**在同一提交内**把结论回写进 CONVENTIONS 与两份 PLAN（原则 5）。
 >
-> 当前状态：**ADR-0001 ~ ADR-0007 已生效（2026-09-15）**
+> 当前状态：**ADR-0001 ~ ADR-0008 已生效**（0001~0007 · 2026-09-15；0008 · 2026-10-12）
 
 ---
 
@@ -341,6 +341,72 @@ ADR-0005 裁决「MCP 不固定唯一实现」时（同日），`unreal` 段收�
 - `gbe-studio/core/registry/engines.json`：`unreal.ports` 增 `unreal-mcp-official`。
 - `gbe-assets/catalog/ports.json`：登记端口 8000（`status: "reserved"`）；重跑 `bridges/sync-ports.js` 刷新只读视图。
 - CONVENTIONS §20.2 / §20.3 镜像同步。
+
+---
+
+## ADR-0008 — `$` 前缀的键是文档性注释，不受 `additionalProperties: false` 约束
+
+**状态**：已生效　**裁决人**：用户（大人，2026-10-12 指令「直接开工按推荐方案改」）　**日期**：2026-10-12
+
+### 背景：契约与自己的数据形状长期不符，而冒烟测试看不见它
+
+`X-0032` 的四仓审阅发现一条事实：**作为模数与预算真源的 `kits/cn-ancient/kit.json`，过不了本仓自己的 `kit.schema.json`**。
+
+```
+$ node -e "const g=require('./packages/schema/index.js'),fs=require('fs');
+           console.log(g.validateKit(JSON.parse(fs.readFileSync('kits/cn-ancient/kit.json','utf8'))))"
+valid = false
+  ✗ $.grid.$comment      不允许的额外字段
+  ✗ $.budgets.$comment   不允许的额外字段
+  ✗ $.materials.$comment 类型应为 array，实际为 string
+```
+
+而这件事**长期不可见**，原因不是"没人查"，是**查的地方看不见它**：`packages/schema/test/smoke.js` 的 kit 正例是一份**手工合成、刻意不含 `$comment`** 的夹具 —— 夹具与真源分叉，测试就永远绿。（`X-0032` 的 A-1；本次已把真源接进冒烟测试。）
+
+### 关键事实：这个惯例比契约更早，而且工具链依赖它
+
+`$` 前缀注释不是某处笔误，而是**双库既有写法**，实测在场范围：
+
+| 位置 | 处数 |
+|---|---|
+| `kits/cn-ancient/kit.json`（`grid` / `budgets` / `materials` / `coverage` / `axis`） | 5 |
+| `catalog/ports.json` · `catalog.config.json` | 各 1 |
+| `gbe-studio/core/registry/{providers,engines,mcp}.json` · `core/policy/{fallback,budget}.json` · `bridges/registry.json` 等 | 8 份文件 |
+
+★ 决定性的一条：**`tools/intake.js` 主动重写 `coverage.$comment`** —— 本仓的入库工具在**生产一份 schema 会拒绝的数据**。这说明惯例与契约的分叉已经深到"日常工具链在违反契约"，不是清理一处笔误能了结的。
+
+### 裁决：承认惯例，把规则写进 **schema**（而不是写进校验器）
+
+| 方向 | 代价 | 判 |
+|---|---|---|
+| **A. schema 放行 `$` 前缀**（受约束节点加 `"patternProperties": { "^\\$": {} }`） | schema 里多 27 处机械插桩；"文档性键"成为契约的一部分 | ✅ **采** |
+| B. 把注释移出受约束节点 | 注释与它所解释的字段**分离**，读数据时看不到"为什么这么定"；还要改 `intake.js` 落点与 8 份注册表；历史文件改不动 | ✗ 否 |
+
+★ **为什么不走最省事那条路**（校验器私自跳过 `$` 键）：那样 schema 就是假的 —— 本仓自称遵循 JSON Schema 2020-12，若第三方拿 `ajv` 复核会得到**与本仓校验器不同的结论**，正是 §0 原则 1「单一真源」要防的事。**放宽必须落在 schema 里**，谁复核都同一个答案。
+
+### 边界（防止"放行一个前缀"退化成"放开整个闸门"）
+
+- ✅ 只放行键名以 `$` 开头的键，**不校验其值类型**。
+- ✗ 未知**非** `$` 键仍必须拦 —— 把 `grid.snap_m` 拼成 `grid.snap_x` 必须报「不允许的额外字段」。
+- ✗ map 型节点（`materials` = 组名 → 数组）放行 `$` 前缀后，**其余值仍严格按数组校验**。
+- ✗ 不放开 `$` 之外的任何前缀（`_` / `x-` 等一律照旧拦）。
+- 上面三条各有一条用例钉在 `packages/schema/test/smoke.js`（1 正 2 负），改坏了当场红。
+
+### 执行结果（2026-10-12）
+
+| 项 | 结果 |
+|---|---|
+| `catalog/schema/*.schema.json` | 5 个文件 **27 处**封闭 / map 节点插桩（`asset.v2` 12 · `assembly.v2` 5 · `source.v2` 4 · `kit` 3 ＋ map 型 1 · `collection` 2）。★ 按**行插入**保留原排版 —— `JSON.stringify` 会把 323 行的文件摊成 580 行，真源的 diff 会被格式噪声淹没 |
+| `CONVENTIONS.md` | **v1.4 → v1.5**：§0 新增**原则 7** ＋ 变更记录回写一行（依原则 5「四份文档同提交同步」） |
+| `packages/schema/test/smoke.js` | 真源 `kit.json` 入校验 ⇒ **37 → 41 用例 / 0 失败**；A-1 由"故意亮红"转为常规回归，另加 3 条边界护栏 |
+| 实测 | 真源 `validateKit` → **`valid = true`**；未知非 `$` 键与 map 值类型违规 → **仍被拦**；`test/assembly.js` 27 通过 / 0 失败 |
+| 两份 PLAN | `gbe-assets/docs/PLAN.md`（校验器段）＋ `gbe-studio/docs/PLAN.md`（契约依赖段）各补一行 —— 同一提交内 |
+
+### 不做的事
+
+- ✗ **不删既有 `$comment`** —— 它们承载"这条为什么这么定"，删掉等于丢决策上下文，且与 `intake.js` 的现有行为直接冲突。
+- ✗ **不在校验器里开后门**（理由见「裁决」表下方那条）。
+- ✗ **不借本 ADR 放宽任何别的东西** —— 本条只管 `$` 前缀；`additionalProperties: false` 对其余键的效力一字未动。
 
 ---
 

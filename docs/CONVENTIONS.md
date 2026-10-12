@@ -6,8 +6,10 @@
 > **变更流程**：只从本文件发起 → 同步 `catalog/schema/` 与 Studio 契约 → 双库适配；禁止任一侧私自发明第二套定义。
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
-> 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0007）
-> **当前版本：v1.4（2026-09-15）** — v1.3 + 依 ADR-0007：MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度，官方实现进注册表但**不预设首选**；端口 `status` 增 `reserved` 三态
+> 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0008）
+> **当前版本：v1.5（2026-10-12）** — v1.4 + 依 ADR-0008：新增原则 7「`$` 前缀的键 = 文档性注释，不参与契约语义」，五个 schema 的 27 处封闭 / map 节点统一放行该前缀
+>
+> **上一版**：v1.4（2026-09-15）— 依 ADR-0007：MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度，官方实现进注册表但**不预设首选**；端口 `status` 增 `reserved` 三态
 
 ---
 
@@ -20,6 +22,10 @@
 4. **精修只产引擎无关标准件**：坐标轴、单位、材质引用的引擎差异只在集成层 / `engines.*` 字段处理。
 5. **四份文档必须同提交同步**：本文件、`catalog/schema/`、两份 PLAN（+ `BUILDING-DECOMPOSITION.md`）构成一组。任一处变更须在同一提交内同步其余；**"多方并存但不一致"是不可接受状态**，由 CI 检出（见 §18）。
 6. **实现可替换，语义不变**：平台 / 引擎 / MCP 实现都是**可切换的注册表条目**（§20）。上层只依赖语义接口（providers 的 `submit/poll/fetch`、engines 的 8 个语义动作），**禁止把某个第三方实现的具名工具写进上层逻辑**。
+7. **`$` 前缀的键 = 文档性注释，不参与契约语义**（v1.5 · ADR-0008）：任何 JSON 文件里以 `$` 开头的键（`$comment` / `$note` …）只解释"这条为什么这么定"，**不受 `additionalProperties: false` 约束、不校验值类型、不属于数据**。
+   - **为什么需要一条明文约定而不是一处修改**：这个惯例比契约本身更早 —— `kit.json` 的 `grid` / `budgets` / `materials`、`catalog.config.json`、`catalog/ports.json` 都在用，`tools/intake.js` 甚至**主动重写** `coverage.$comment`；gbe-studio 的四张注册表也全在用。而 5 个 schema 里有 **26 处** `additionalProperties: false` 或 map 型节点会拒绝它 ⇒ **契约与自己的数据形状长期不符**（真源 `kit.json` 连 `validateKit` 都过不了，见 ADR-0008 背景）。
+   - **落点**：规则写在 schema 里（每个受约束节点带 `"patternProperties": { "^\\$": {} }`），**不写在校验器里**。校验器若私自放行 `$` 键，schema 就是假的 —— 拿 ajv 等标准实现复核时会给出不同结论。
+   - **边界**：只放"键名以 `$` 开头"这一条例外。未知**非** `$` 键（如拼错的 `grid.snap_x`）**仍必须被拦**；map 型节点（如 `materials`）放行 `$` 前缀后，其余值仍按其 schema 校验。`packages/schema/test/smoke.js` 有这三条护栏用例。
 
 ---
 
@@ -733,3 +739,4 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | 2026-09-15 | **v1.2 决策回写**（依 `docs/DECISIONS.md` ADR-0001~0006）：① §16 整节重写为「存量原型处置（不迁移）」，删除 migration-exempt / migrate 服务 / 迁移台账 / preview-legacy，v1→v2 对照表降级为 DECISIONS 附录 A（ADR-0001）；② §15 新增禁令 11（禁静默兼容 v1 包）；③ §20.1 Provider 去 `rodin`（`disabled` 保留条目）、降级链改 `meshy → fal → hunyuan3d`（ADR-0002）；④ §20.1 增 `hunyuan3d` 三通道（`tokenhub`/`tencentcloud`/`web`），§12 账本增 `provider_channel`（ADR-0003）；⑤ §1 / §20.2 标注 Unity 为 `deferred`，`engines.unity` 字段保留（ADR-0004）；⑥ §0 新增原则 6（实现可替换、语义不变），新增 **§20 注册表**（Provider / Engine / MCP），§15 新增禁令 10（禁写死具名 MCP 工具）（ADR-0005）；⑦ 新增 **§19 构件分级与建筑拼装契约**：`granularity` L0–L3、模数约束、插槽类型表（§9.1 新增）、装配清单格式、装配校验判据、烘焙派生（ADR-0006）；⑧ §4 分类枚举增 `components/ornament` 与 `assemblies/`；⑨ §5.1 新增槽名标准词表；⑩ §11 增 `baked/` 派生行；⑪ §17 DoD 第 4/6/7/9 项调整并新增第 10 项（插槽+装配验收）；⑫ §0 新增原则 0（决策先于文档） |
 | 2026-09-15 | **v1.4 决策回写**（依 `docs/DECISIONS.md` **ADR-0007**，官方 UE 5.8 MCP 出现后）：① §20.3 条目新增 **`source` / `engine_version_range` / `maturity`** 三维度并回填全部既有实现，`selection_policy` 增 `preference_rules`（偏好提示，**不自动选定**，`preselect=false` 不变）；② §20.3 明确 **`semantic_map: null` 的语义 =「工具尚不存在」而非「还没填」**，禁止写全 `null` 空壳映射表（空壳会掩盖「要写实现」与「要填映射」的工作量差异），新增 `supports_basis: design-complete` 表示「设计齐全但落地前可用为 0」；③ §20.2 `unreal` 行补全 4 个实现的端口（6776 / 30010 / 8091 / 55557）+ **预留 8000**；④ §18 端口 `status` 定为**三态**（省略 = 已启用 · `reserved` = 已登记未启用 · `deferred` = 引擎延后），只读视图对应 `studio_ports` / `reserved_ports` / `deferred_ports` 三组；⑤ 配套修 `bridges/sync-ports.js`：`reserved` 原先被误算进「已启用」，且 `--probe` 因 `process.exit(main(...))` 在异步完成前杀掉进程而**从未产出过任何输出** |
 | 2026-09-15 | **v1.3 实施回写**（18 件程序化构件落地时推出）：① §19.5 新增「实施说明」——把五处契约沉默处一次性定死：`transform.rotation` 单位 = 弧度、`mate_types` 缺省 = 通配、`attach` 单向例外（消解它与「互认」的直接冲突）、**两类嵌入豁免**（已对接对 / 收容式）、承重链的**种子与两条传播规则**；② §19.5 新增「节点件接法」——面接 vs 枢接的可判定前提，推论 L 形转角件**翼厚须 ≥ 1.0 m**（翼厚 0.5 m 不可自洽），推论 `wall-line` 的 `wall_module_m` 整数倍只约束**同轴续接**；③ §19.4 补齐 `transform` 单位与清单文件命名 `assemblies/<id 第三段>.json`；④ 配套落地：`packages/schema/assembly.js`（§19.5 八条判据）、`packages/schema/test/assembly.js`（27 项回归：正向 + 逐条反例）、`tools/intake.js`（inbox→kits 只 move 不删，附带刷新 coverage 派生快照） |
+| 2026-10-12 | **v1.5 决策回写**（依 `docs/DECISIONS.md` **ADR-0008**）：§0 新增**原则 7** —— 以 `$` 开头的键是**文档性注释**，不参与契约语义、不受 `additionalProperties: false` 约束、不校验值类型、不属于数据。① 配套插桩：五个 schema（`asset.v2` / `source.v2` / `assembly.v2` / `kit` / `collection`）的 **27 处**封闭或 map 节点统一加 `"patternProperties": { "^\\$": {} }`；② ★ 规则**写在 schema 里、不写在校验器里** —— 校验器若私自放行，schema 就成了假的，换 ajv 复核会给出不同结论；③ 边界由 `packages/schema/test/smoke.js` 三条护栏钉住：未知非 `$` 键（`grid.snap_x`）**仍必须拦**、map 型（`materials`）放行该前缀后**其余值仍按数组校验**；④ 缘起：真源 `kits/cn-ancient/kit.json` 一直过不了 `validateKit`（三处 `$comment`），而该惯例早于契约本身（`catalog.config.json` / `ports.json` / studio 四张注册表全在用，`tools/intake.js` 还主动重写 `coverage.$comment`）—— 属**契约与自己的数据形状长期不符**，不是某处笔误 |

@@ -19,6 +19,42 @@
 
 ## [未发布]
 
+## [0.6.0] - 2026-10-12
+
+### 新增（契约）—— **ADR-0008：`$` 前缀的键 = 文档性注释，不受 `additionalProperties: false` 约束**
+
+- **裁决**：承认既有惯例，**把规则写进 schema**，五个契约真源共 **27 处**封闭 / map 节点插桩 `"patternProperties": { "^\\$": {} }`（`asset.v2` 12 · `assembly.v2` 5 · `source.v2` 4 · `kit` 3 ＋ map 型 1 · `collection` 2）。
+- ★ **为什么不写在校验器里**（这是最省事的写法，也是本 ADR 明确否决的）：那样 schema 就成了假的 —— 本仓自称遵循 JSON Schema 2020-12，第三方拿 `ajv` 复核会得到**与 `@gbe/schema` 不同的结论**，正是 `CONVENTIONS §0` 原则 1「单一真源」要防的事。**放宽必须落在 schema 里，谁复核都同一个答案。**
+- **为什么不是"把注释搬走"**：`$comment` 在两仓 10+ 份文件里都在用（`kit.json` 5 处 · `catalog.config.json` · `ports.json` · studio 四张注册表…），而 **`tools/intake.js` 还会主动重写 `coverage.$comment`** —— 入库工具一直在生产一份 schema 会拒绝的数据，说明分叉已深到"日常工具链违反契约"，不是一处笔误。搬走注释还会把"这条为什么这么定"与它所解释的字段**分离**，读数据时丢掉决策上下文。
+- **边界（防"放行一个前缀"退化成"放开整个闸门"）**：只放行 `$` 开头的键、不校验其值；未知非 `$` 键（拼错的 `grid.snap_x`）**仍必须拦**；`materials` 这类 map 节点放行该前缀后**其余值仍按数组校验**；`_` / `x-` 等其它前缀一律照旧拦。
+
+### 撤销 —— v0.5.2 那节「★ 已知红」在本版关闭
+
+- v0.5.2 里**故意点亮**的红灯（真源 `kit.json` 过不了 `kit.schema.json`）随 ADR-0008 落地而**转绿**：`validateKit(kit.json)` → **`valid = true`**，`node packages/schema/test/smoke.js` → **41 通过 / 0 失败**。
+- ★ 该用例**不删**，转为常规回归（真源必须过自己的 schema），并新增 **3 条边界护栏**（1 正 2 负）钉住 ADR-0008 的作用域。v0.5.2 那一节作为**已发布历史**保留原样，不追改。
+- ★ **本次一并修掉的可见性缺陷**：原来"看不见"不是因为没人查，而是 `smoke.js` 的 kit 正例是**手工合成、刻意不含 `$comment`** 的夹具 —— 夹具与真源分叉，测试就永远绿。真源接入后这类"夹具掩盖真源"的分叉第一次有了回归位。
+
+### 连带同步（依 `CONVENTIONS §0` 原则 5「四份文档同提交」）
+
+- `catalog/schema/`（5 个文件 · 27 处插桩）＋ `docs/CONVENTIONS.md`（**v1.4 → v1.5** · §0 新增原则 7 ＋ 变更记录一行）＋ `docs/PLAN.md` ＋ `gbe-studio/docs/PLAN.md`（版本号指针 v1.5 ＋ ADR 列表补 0008）＋ 两份 `README.md` 的 v1.4 指针 ＋ `docs/DECISIONS.md`（ADR-0008 正文 ＋ 头部状态行）。
+
+### 验证（命令 + 实际输出）
+
+```
+$ node packages/schema/test/smoke.js          EXIT=0   结果：41 通过 / 0 失败
+$ node packages/schema/test/assembly.js       EXIT=0   通过 27 · 失败 0
+$ node -e "…validateKit(真源 kit.json)"        valid = true
+# ADR-0008 作用域七条实测（放行 / 拦下 逐条符合预期）：
+  ✓ $comment 文档性键 · 放行      ✓ grid.snap_x 未知键 · 拦下      ✓ materials 未知组名值非数组 · 拦下
+  ✓ materials.$comment · 放行     ✓ 顶层 nope · 拦下              ✓ 顶层 $comment · 放行
+  ✓ $note（$ 前缀一律放行）
+# 五个 schema 插桩后仍全部是合法 JSON（脚本写盘前先 JSON.parse 校验，失败即不落盘）
+$ node scripts/version.js check               ✓ 通过
+```
+
+### 变更
+- ADR-0008：$ 前缀=文档性键，五个 schema 的 27 处封闭/map 节点放行（规则写进 schema 不写进校验器）· v0.5.2 点亮的 A-1 真源红灯转绿（smoke 41/0）· CONVENTIONS v1.5 + 两份 PLAN + 两份 README 指针同提交
+
 ## [0.5.2] - 2026-10-12
 
 ### 修正（`X-0032` 的 A-2 / A-6 ＋ 把 A-1 从暗雷变成红灯）

@@ -362,21 +362,49 @@ ok('正例（**合成夹具**）：kit 的最小合规形状 —— 注意它不
 
 // ★ 上一条是**手工合成的夹具，刻意不含 `$comment`** —— 它与真源分叉，恰好把 A-1 掩盖掉：
 //   真源 `kits/cn-ancient/kit.json` 在 `grid` / `budgets` / `materials` 三处都带 `$comment`，
-//   而 `kit.schema.json` 对 `grid` / `budgets` 设了 `additionalProperties: false`。
+//   而 `kit.schema.json` 曾对 `grid` / `budgets` 设 `additionalProperties: false`。
 //   所以「smoke 全绿」从来不等价于「模数与预算的真源合自己的契约」。本条把真源直接喂给校验器。
-// ★★ **本版故意让它红**（大人裁定：只暴露、不裁）—— `$comment` 到底合法（改 schema）还是非法
-//   （把注释移出受约束节点），属**契约变更**，须先开 ADR + 四处同提交；测试不许替那次裁决抢跑。
-//   销号条件：ADR 落地后本条转绿，`CHANGELOG.md` 的「已知红」节随之撤下。
-ok('正例：真源 kits/cn-ancient/kit.json 必须过 kit.schema（★ 已知红 · 待 ADR 裁定 A-1）', () => {
+// ★ 2026-10-12 **ADR-0008 裁定**：`$` 前缀 = **文档性键**，不参与契约语义、不受 `additionalProperties: false`
+//   约束；五个 schema 的 26+1 处封闭/map 节点已统一插桩。本条从"故意亮红"转为**必须绿的常规回归**。
+//   ★ 放行只在一个前缀的范围内生效 —— 下面三条护栏钉住它没退化成"放开整个闸门"。
+ok('正例：真源 kits/cn-ancient/kit.json 必须过 kit.schema（ADR-0008 后为常规回归）', () => {
   const fs = require('fs');
   const file = path.join(gbe.REPO_ROOT, 'kits', 'cn-ancient', 'kit.json');
   const r = gbe.validateKit(JSON.parse(fs.readFileSync(file, 'utf8')));
   assert.ok(
     r.valid,
     '真源 kit.json 过不了自己的 schema ⇒ ' +
-      (r.errors || []).map((e) => `${e.path} ${e.message}`).join(' ｜ ') +
-      ' ⇒ 去向：开 ADR 裁定 `$comment` 合法性（见 CHANGELOG「已知红」）'
+      (r.errors || []).map((e) => `${e.path} ${e.message}`).join(' ｜ ')
   );
+});
+
+// ── ADR-0008 的三条护栏：放宽的范围必须恰好等于 `$` 前缀，不多不少 ──
+
+const realKit = () =>
+  JSON.parse(require('fs').readFileSync(path.join(gbe.REPO_ROOT, 'kits', 'cn-ancient', 'kit.json'), 'utf8'));
+
+ok('负例：非 `$` 前缀的未知键仍必须被拦（放行≠放开闸门）', () => {
+  const k = realKit();
+  k.grid.snap_x = 1; // 拼错的模数字段 —— 不是 $ 前缀 ⇒ 必须拦
+  const r = gbe.validateKit(k);
+  assert.ok(!r.valid, '未知键 `grid.snap_x` 竟被放过 ⇒ additionalProperties 已被掏空');
+  assert.ok(r.errors.some((e) => e.path === '$.grid.snap_x'), `报错路径不对：${JSON.stringify(r.errors)}`);
+});
+
+ok('正例：`$` 前缀在顶层 / 嵌套对象 / map 型节点一律放行', () => {
+  const k = realKit();
+  k.$note = '顶层文档键';
+  k.grid.$note = '嵌套层文档键';
+  k.materials.$note = 'map 型节点也放行';
+  const r = gbe.validateKit(k);
+  assert.ok(r.valid, JSON.stringify(r.errors));
+});
+
+ok('负例：map 型放行 `$` 前缀后，其余值仍严格按数组校验', () => {
+  const k = realKit();
+  k.materials.not_a_group = '我是字符串，不是数组';
+  const r = gbe.validateKit(k);
+  assert.ok(!r.valid, 'patternProperties 顺手放宽了 map 型的值约束 ⇒ 不该');
 });
 
 ok('负例：kit 缺 budgets 被拦', () => {

@@ -5,6 +5,7 @@
   "description": "GBE 资产元数据契约 v2 —— ★ 分类枚举与字段的机器可读真源。CONVENTIONS.md 中的表格均为人类可读镜像，必须与本文件一致（CI 校验）。字段语义见 CONVENTIONS §1–§12、§19。",
   "type": "object",
   "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
   "required": [
     "schema_version", "id", "name", "version", "status",
     "kit", "category", "tier", "granularity",
@@ -88,6 +89,7 @@
     "geometry": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["dimensions_m", "pivot", "axis", "polycount"],
       "properties": {
         "dimensions_m": {
@@ -101,6 +103,7 @@
         "axis": {
           "type": "object",
           "additionalProperties": false,
+          "patternProperties": { "^\\$": {} },
           "required": ["up", "forward"],
           "properties": {
             "up": { "const": "+Y" },
@@ -118,11 +121,13 @@
     "files": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["model"],
       "properties": {
         "model": {
           "type": "object",
           "additionalProperties": false,
+          "patternProperties": { "^\\$": {} },
           "required": ["lod0"],
           "properties": {
             "lod0": { "type": "string", "minLength": 1 },
@@ -137,6 +142,7 @@
     "shell": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "properties": {
         "has_uv": { "type": "boolean" },
         "manifold": { "type": "boolean" },
@@ -146,6 +152,7 @@
     "materials": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "required": ["slots"],
       "properties": {
         "slots": {
@@ -153,6 +160,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
+            "patternProperties": { "^\\$": {} },
             "required": ["slot", "ref"],
             "properties": {
               "slot": {
@@ -179,6 +187,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "patternProperties": { "^\\$": {} },
         "required": ["name", "type"],
         "properties": {
           "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
@@ -231,6 +240,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "patternProperties": { "^\\$": {} },
         "required": ["type"],
         "properties": {
           "type": { "enum": ["material-swap", "tint", "mirror", "scale"] },
@@ -242,6 +252,7 @@
     "engines": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
       "properties": {
         "godot": {
           "type": "object",
@@ -277,6 +288,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "patternProperties": { "^\\$": {} },
         "required": ["id"],
         "properties": {
           "id": { "type": "string" },
