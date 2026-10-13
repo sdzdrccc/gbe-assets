@@ -27,3 +27,31 @@ node scripts/version.js check || {
   echo "" >&2
   exit 1
 }
+
+# ── 跨仓一致性：本仓改动 ↔ guild 侧的资产引用契约（2026-10-13 新增 · 补盲区）──────
+#
+# WHY：本仓改了 `catalog/schema/` 或 `kits/`，会**打断 guild 侧的契约对齐** ——
+#   `qiuyuan-guild/scripts/check-asset-ref.js` 的判据 A1~A5 **实时读这两处**
+#   （`catalog/schema/asset.v2.schema.json` 当 L2 权威枚举 · `kits/` 查 kit 存在性）。
+#   而那个脚本**本仓从不跑它** ⇒ 它报的红**没人看见**（与 dalu 的 `check-records.js` 同一类盲区）。
+# ★ 判据真源在 guild ⇒ 这里**只跑它，不复制它**（复制即双真源）。
+#
+# 依赖：`qiuyuan-guild` 与本源仓**同级**（默认 `../qiuyuan-guild`；可用 `GBE_GUILD=` 覆盖）。
+if [ "${GBE_SKIP_CROSS_REPO_CHECK}" = "1" ]; then
+  echo "[pre-push] GBE_SKIP_CROSS_REPO_CHECK=1 —— 跳过跨仓契约对齐校验"
+else
+  GBE_GUILD="${GBE_GUILD:-../qiuyuan-guild}"
+  if [ ! -f "$GBE_GUILD/scripts/check-asset-ref.js" ]; then
+    echo "[pre-push] 跳过跨仓契约对齐校验：找不到 $GBE_GUILD/scripts/check-asset-ref.js" >&2
+    echo "[pre-push] ★ 这是**跳过**，不是通过。要校就把 qiuyuan-guild clone 到同级目录。" >&2
+  else
+    node "$GBE_GUILD/scripts/check-asset-ref.js" || {
+      echo "" >&2
+      echo "[pre-push] 推送被拦下：本次改动打断了 guild 侧的资产引用契约对齐。" >&2
+      echo "           看上面 A1~A5 的红 —— 要么改本仓、要么去 guild 改契约（走 ADR）。" >&2
+      echo "           确需放行：GBE_SKIP_CROSS_REPO_CHECK=1 git push" >&2
+      echo "" >&2
+      exit 1
+    }
+  fi
+fi
