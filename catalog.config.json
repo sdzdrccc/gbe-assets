@@ -41,8 +41,7 @@
     "deferred": ["unity"]
   },
   "services": {
-    "api_port": 8788,
-    "web_port": 8789
+    "$comment": "端口不在这里登记 —— 唯一真源是 catalog/ports.json（全项目端口真源，CONVENTIONS §18）。此处曾重复登记 api_port / web_port（X-0032 A-8），已删：无任何读者，而两处各记一份必然漂移。"
   },
   "validate": {
     "reject_v1_packages": true,

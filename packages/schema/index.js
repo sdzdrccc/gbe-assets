@@ -16,6 +16,9 @@
  *   node index.js asset           path/to/asset.json
  *   node index.js source          path/to/source.json
  *   node index.js assembly        path/to/assembly.json         （语法）
+ *   node index.js kit             path/to/kit.json
+ *   node index.js collection      path/to/collection.json
+ *   node index.js ports           path/to/ports.json            （端口真源，CONVENTIONS §18）
  *   node index.js assembly-check  path/to/assembly.json         （§19.5 语义，需真源库）
  *   node index.js package         path/to/inbox/<id>@<version>/
  */
@@ -34,6 +37,7 @@ const SCHEMA_FILES = {
   assembly: 'assembly.v2.schema.json',
   kit: 'kit.schema.json',
   collection: 'collection.schema.json',
+  ports: 'ports.schema.json',
 };
 
 const CURRENT_SCHEMA_VERSION = '2';
@@ -63,6 +67,7 @@ const validateSource = (s) => validate('source', s);
 const validateAssembly = (a) => validate('assembly', a);
 const validateKit = (k) => validate('kit', k);
 const validateCollection = (c) => validate('collection', c);
+const validatePorts = (p) => validate('ports', p);
 
 // ---------------------------------------------------------------------------
 // 门禁 1：契约版本闸门（ADR-0001 —— v1 一律拒收，不静默兼容）
@@ -387,7 +392,9 @@ function checkPackage(dir) {
   } else {
     const size = readPngSize(preview);
     if (!size) {
-      warnings.push({ path: 'preview.png', message: '无法解析 PNG 头部，跳过尺寸校验' });
+      // X-0032 A-5①：曾经这里只 push warning「跳过尺寸校验」—— 名叫 preview.png
+      // 却不是合法 PNG 的包会被放行（fail-open）。文件头都读不出来就是坏包，按 error 处理。
+      errors.push({ path: 'preview.png', message: 'preview.png 不是合法的 PNG（无法解析文件头）—— 坏包，拒收' });
     } else if (size.width !== PREVIEW_SIZE_PX || size.height !== PREVIEW_SIZE_PX) {
       errors.push({
         path: 'preview.png',
@@ -396,12 +403,26 @@ function checkPackage(dir) {
     }
   }
 
-  // ④ 模型文件存在性
-  const lods = (asset.files && asset.files.model) || {};
+  // ④ 模型 / 预览 / 碰撞文件存在性（asset.v2.schema.json 的 files 形状：
+  //    model = { lod0?, lod1?, lod2? }（lod0 必填）· preview = string[] · collision = string | null）
+  const files = asset.files || {};
+  const lods = files.model || {};
   for (const [k, rel] of Object.entries(lods)) {
     if (typeof rel === 'string' && !fs.existsSync(path.join(dir, rel))) {
       errors.push({ path: `asset.json.files.model.${k}`, message: `文件不存在：${rel}` });
     }
+  }
+  // X-0032 A-5②：曾经只查 files.model，漏了 schema 明列为数组的 files.preview[] 与 files.collision。
+  if (Array.isArray(files.preview)) {
+    files.preview.forEach((rel, i) => {
+      if (typeof rel === 'string' && !fs.existsSync(path.join(dir, rel))) {
+        errors.push({ path: `asset.json.files.preview[${i}]`, message: `文件不存在：${rel}` });
+      }
+    });
+  }
+  // collision 按 schema 实际形态处理：string 才查存在性；null / 缺字段跳过不查。
+  if (typeof files.collision === 'string' && files.collision && !fs.existsSync(path.join(dir, files.collision))) {
+    errors.push({ path: 'asset.json.files.collision', message: `文件不存在：${files.collision}` });
   }
 
   return { ok: errors.length === 0, errors, warnings, asset };
@@ -502,6 +523,7 @@ module.exports = {
   validateAssembly,
   validateKit,
   validateCollection,
+  validatePorts,
   gateSchemaVersion,
   // 业务门禁
   checkDirectoryName,

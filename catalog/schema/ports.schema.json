@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gbe.dev/schema/ports.json",
+  "title": "GBE 端口登记表",
+  "description": "catalog/ports.json 的契约 —— 全项目端口唯一真源（CONVENTIONS §18）。gbe-studio/bridges/registry.json 是由它派生的只读视图，不得成为第二真源。条目 status 三态（ADR-0007）：缺省 = 启用；reserved = 已登记未启用（仍须避让）；deferred = 整引擎延后（ADR-0004）。",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
+  "required": ["ports_version", "updated_at", "owner", "ports"],
+  "properties": {
+    "$comment": {
+      "type": "string",
+      "description": "文档性键（ADR-0008）；不带契约语义。"
+    },
+    "ports_version": {
+      "type": "string",
+      "description": "端口表自身的版本（不是契约版本）；格式变化时递增。"
+    },
+    "updated_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "最近修订日期（YYYY-MM-DD）。"
+    },
+    "owner": {
+      "type": "string",
+      "description": "本文件的负责仓（当前恒为 gbe-assets）。"
+    },
+    "ports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": { "^\\$": {} },
+        "required": ["id", "port", "protocol", "owner", "purpose", "required"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "条目标识；小写 kebab-case。全表唯一性是维护纪律（schema 表达不了，靠 sync-ports 交叉校验与人工）。"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "protocol": {
+            "enum": ["tcp", "udp", "http", "ws"],
+            "description": "传输协议。新增取值（如 quic）须先加在这里，并在 CONVENTIONS §18 同步。"
+          },
+          "owner": {
+            "type": "string",
+            "description": "占用方：gbe-studio（桥接层）或 gbe-assets（本仓服务）。"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "description": "人类可读的用途。"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "true = 必需端口（缺失即环境不完整）；false = 可选/预留。"
+          },
+          "status": {
+            "enum": ["reserved", "deferred"],
+            "description": "三态口径见 ADR-0007。缺省 = 启用；reserved 与 deferred 不可混用。"
+          },
+          "note": {
+            "type": "string",
+            "description": "补充说明（如 ADR 出处、冲突风险）。"
+          }
+        }
+      }
+    }
+  }
+}

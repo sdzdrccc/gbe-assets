@@ -449,6 +449,24 @@ ok('category 不在枚举内 → 被语法校验拒收', () => {
 });
 
 // ---------------------------------------------------------------------------
+console.log('\n[10] 附加：params.instance_count 与 instances.length 一致（X-0032 A-7）');
+// ---------------------------------------------------------------------------
+
+ok('正例：instance_count 与实际实例数相符 → 通过', () => {
+  const r = mutate((m) => (m.params = { instance_count: m.instances.length }));
+  assert.ok(r.ok, `应通过：\n      ${r.errors.map((e) => e.message).join('\n      ')}`);
+});
+
+ok('反例：instance_count 与实际实例数不符 → 报错', () => {
+  hasErr(mutate((m) => (m.params = { instance_count: m.instances.length + 2 })), /instance_count.*不符/, 'A-7');
+});
+
+ok('正例：有 params 但无 instance_count 不受该判据影响（字段可选）', () => {
+  const r = mutate((m) => (m.params = { bays: 5, bay_width_m: 4 })); // 有 params 但无 instance_count
+  assert.ok(r.ok, `应通过：\n      ${r.errors.map((e) => e.message).join('\n      ')}`);
+});
+
+// ---------------------------------------------------------------------------
 
 try {
   fs.rmSync(ROOT, { recursive: true, force: true });

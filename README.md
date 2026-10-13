@@ -46,18 +46,19 @@ gbe-assets/
 │   │   ├── source.v2.schema.json     来源与复现（provider / recipe_hash / 许可）
 │   │   ├── assembly.v2.schema.json   L0 建筑装配清单（构件引用 + 变换 + 插槽绑定）
 │   │   ├── kit.schema.json           kit 元数据：模数网格 / 预算 / 材质分组
-│   │   └── collection.schema.json    合集（一次分发的一组资产）
+│   │   ├── collection.schema.json    合集（一次分发的一组资产）
+│   │   └── ports.schema.json         端口登记表契约（全项目端口唯一真源的数据形状）
 │   └── index.db                运行时生成的结构化 + 全文索引（git 忽略，可重建）
 │
 ├── packages/
 │   └── schema/              ★   @gbe/schema —— 双库共用的契约校验包
 │       ├── package.json            包元数据（零依赖）
 │       ├── index.js                对外 API：validate* / checkPackage / checkAssemblyFull / 门禁函数
-│       ├── validate.js             零依赖 JSON Schema 子集校验器（含 $ref 解析）
+│       ├── validate.js             零依赖 JSON Schema 子集校验器（不支持 $ref，未知关键字静默忽略）
 │       ├── assembly.js         ★   装配级校验（CONVENTIONS §19.5 八条判据 + 库解析 + 极简 semver 范围）
 │       └── test/
-│           ├── smoke.js            构件级冒烟测试（37 项）
-│           └── assembly.js         装配级冒烟测试（27 项：正向 + 八条判据逐条反例）
+│           ├── smoke.js            构件级冒烟测试（49 项）
+│           └── assembly.js         装配级冒烟测试（30 项：正向 + 八条判据逐条反例）
 │
 ├── kits/                    ① 存储层 · 资产实体（权威）
 │   └── cn-ancient/                 中国古建风格 kit（当前 18 件程序化构件）
@@ -177,7 +178,7 @@ node tools/intake.js                 # 加 --dry-run 只报告不动盘；--rein
 node packages/schema/index.js assembly       assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
 node packages/schema/index.js assembly-check assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
 
-# 跑契约校验器的冒烟测试（构件级 37 项 + 装配级 27 项）
+# 跑契约校验器的冒烟测试（构件级 49 项 + 装配级 30 项）
 node packages/schema/test/smoke.js
 node packages/schema/test/assembly.js
 ```

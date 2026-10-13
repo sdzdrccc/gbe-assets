@@ -290,7 +290,7 @@ ok('契约版本闸门：schema_version="1" 被拒收', () => {
 });
 
 // ---------------------------------------------------------------------------
-console.log('\n[5] assembly.v2 / kit / collection');
+console.log('\n[5] assembly.v2 / kit / collection / ports');
 // ---------------------------------------------------------------------------
 
 ok('正例：装配清单通过', () => {
@@ -422,6 +422,52 @@ ok('正例：collection 通过', () => {
   assert.ok(r.valid, JSON.stringify(r.errors));
 });
 
+// ── X-0032 A-8：ports.json 契约（全项目端口唯一真源，CONVENTIONS §18）──
+
+ok('正例：真源 catalog/ports.json 必须过 ports.schema', () => {
+  const fs = require('fs');
+  const file = path.join(gbe.REPO_ROOT, 'catalog', 'ports.json');
+  const r = gbe.validatePorts(JSON.parse(fs.readFileSync(file, 'utf8')));
+  assert.ok(
+    r.valid,
+    '真源 ports.json 过不了 ports.schema ⇒ ' +
+      (r.errors || []).map((e) => `${e.path} ${e.message}`).join(' ｜ ')
+  );
+});
+
+ok('负例：端口条目缺必填字段（port）被拦', () => {
+  const r = gbe.validatePorts({
+    ports_version: '1',
+    updated_at: '2026-10-13',
+    owner: 'gbe-assets',
+    ports: [{ id: 'x-mcp', protocol: 'tcp', owner: 'gbe-studio', purpose: 'x', required: true }],
+  });
+  assert.ok(!r.valid);
+  assert.ok(r.errors.some((e) => /缺少必填字段 "port"/.test(e.message)));
+});
+
+ok('负例：protocol 不在词表内被拦', () => {
+  const r = gbe.validatePorts({
+    ports_version: '1',
+    updated_at: '2026-10-13',
+    owner: 'gbe-assets',
+    ports: [{ id: 'x-mcp', port: 9999, protocol: 'sctp', owner: 'gbe-studio', purpose: 'x', required: true }],
+  });
+  assert.ok(!r.valid);
+  assert.ok(r.errors.some((e) => /protocol/.test(e.path) && /sctp/.test(e.message)));
+});
+
+ok('负例：status 取三态之外的值被拦（ADR-0007）', () => {
+  const r = gbe.validatePorts({
+    ports_version: '1',
+    updated_at: '2026-10-13',
+    owner: 'gbe-assets',
+    ports: [{ id: 'x-mcp', port: 9999, protocol: 'tcp', owner: 'gbe-studio', purpose: 'x', required: false, status: 'enabled' }],
+  });
+  assert.ok(!r.valid);
+  assert.ok(r.errors.some((e) => /status/.test(e.path)));
+});
+
 // ---------------------------------------------------------------------------
 console.log('\n[6] checkPackage（目录级综合校验）');
 // ---------------------------------------------------------------------------
@@ -491,6 +537,95 @@ ok('负例：预览图尺寸不对被拦', () => {
   const r = gbe.checkPackage(sub);
   assert.ok(!r.ok);
   assert.ok(r.errors.some((e) => /512/.test(e.message)));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// ── X-0032 A-5：预览图 fail-open 与 files 漏覆盖 ──
+
+ok('负例：preview.png 不是合法 PNG（坏文件头）被拦（A-5①，不再 fail-open）', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gbe-pngbad-'));
+  const sub = path.join(dir, 'cn-ancient.roof.xuanshan-single-a@1.0.0');
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, 'asset.json'), JSON.stringify(makeAsset()));
+  fs.writeFileSync(path.join(sub, 'source.json'), JSON.stringify(makeSource()));
+  fs.writeFileSync(path.join(sub, 'model.glb'), '');
+  fs.writeFileSync(path.join(sub, 'preview.png'), '我不是 PNG，只是文本'); // 坏包
+
+  const r = gbe.checkPackage(sub);
+  assert.ok(!r.ok, '坏 PNG 必须拒收（曾降级为 warning 被放行）');
+  assert.ok(r.errors.some((e) => e.path === 'preview.png' && /不是合法的 PNG/.test(e.message)));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+ok('负例：files.preview[] 声明了但不存在的文件被拦（A-5②）', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gbe-prevlist-'));
+  const sub = path.join(dir, 'cn-ancient.roof.xuanshan-single-a@1.0.0');
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, 'asset.json'), JSON.stringify(makeAsset({ files: { preview: ['preview.png', 'preview-extra.png'] } })));
+  fs.writeFileSync(path.join(sub, 'source.json'), JSON.stringify(makeSource()));
+  fs.writeFileSync(path.join(sub, 'model.glb'), '');
+  const png = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png, 0);
+  png.writeUInt32BE(13, 8);
+  Buffer.from('IHDR').copy(png, 12);
+  png.writeUInt32BE(512, 16);
+  png.writeUInt32BE(512, 20);
+  fs.writeFileSync(path.join(sub, 'preview.png'), png);
+  // preview-extra.png 故意不创建
+
+  const r = gbe.checkPackage(sub);
+  assert.ok(!r.ok);
+  assert.ok(r.errors.some((e) => e.path === 'asset.json.files.preview[1]' && /preview-extra\.png/.test(e.message)));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+ok('负例：files.collision 声明了但不存在的文件被拦（A-5②）', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gbe-coll-'));
+  const sub = path.join(dir, 'cn-ancient.roof.xuanshan-single-a@1.0.0');
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, 'asset.json'), JSON.stringify(makeAsset({ files: { collision: 'collision.glb' } })));
+  fs.writeFileSync(path.join(sub, 'source.json'), JSON.stringify(makeSource()));
+  fs.writeFileSync(path.join(sub, 'model.glb'), '');
+  const png = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png, 0);
+  png.writeUInt32BE(13, 8);
+  Buffer.from('IHDR').copy(png, 12);
+  png.writeUInt32BE(512, 16);
+  png.writeUInt32BE(512, 20);
+  fs.writeFileSync(path.join(sub, 'preview.png'), png);
+  // collision.glb 故意不创建
+
+  const r = gbe.checkPackage(sub);
+  assert.ok(!r.ok);
+  assert.ok(r.errors.some((e) => e.path === 'asset.json.files.collision' && /collision\.glb/.test(e.message)));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+ok('正例：files.collision = null（schema 允许）不查存在性', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gbe-collnull-'));
+  const sub = path.join(dir, 'cn-ancient.roof.xuanshan-single-a@1.0.0');
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, 'asset.json'), JSON.stringify(makeAsset())); // 夹具默认 collision: null
+  fs.writeFileSync(path.join(sub, 'source.json'), JSON.stringify(makeSource()));
+  fs.writeFileSync(path.join(sub, 'model.glb'), '');
+  const png = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png, 0);
+  png.writeUInt32BE(13, 8);
+  Buffer.from('IHDR').copy(png, 12);
+  png.writeUInt32BE(512, 16);
+  png.writeUInt32BE(512, 20);
+  fs.writeFileSync(path.join(sub, 'preview.png'), png);
+
+  const r = gbe.checkPackage(sub);
+  assert.ok(r.ok, JSON.stringify(r.errors, null, 2));
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

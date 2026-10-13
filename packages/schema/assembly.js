@@ -334,6 +334,18 @@ function checkAssembly(manifest, opts = {}) {
   stats.distinct = new Set(insts.map((i) => i.assetId)).size;
   stats.polys = insts.reduce((s, i) => s + (i.asset ? i.asset.geometry.polycount * i.count : 0), 0);
 
+  // ── 附加：params.instance_count 必须等于 instances.length（X-0032 A-7）──────
+  // params 是回溯/再生成用的自由字段（schema 不约束其内容），但 instance_count 是
+  // **派生计数**：与 instances.length 不符即清单自身不一致（真源曾出现 5 vs 6，
+  // 而此前没有任何校验能发现这种漂移）。count 倍率不算独立实例，判据就是数组长度。
+  const declaredCount = manifest.params && manifest.params.instance_count;
+  if (declaredCount !== undefined && declaredCount !== manifest.instances.length) {
+    errors.push({
+      path: '$.params.instance_count',
+      message: `params.instance_count = ${declaredCount} 与实际 instances 数 ${manifest.instances.length} 不符（派生计数必须与清单一致）`,
+    });
+  }
+
   const byInstance = new Map(insts.map((i) => [i.id, i]));
   const hasAsset = (i) => !!i.asset;
 

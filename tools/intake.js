@@ -7,7 +7,8 @@
  *
  * ── 三条铁律 ──────────────────────────────────────────────────────────────
  *  ① 先校验后入库：每包跑一遍 `@gbe/schema` 的 checkPackage（门禁双跑的第二次；
- *     第一次在 studio 出包前）。错误包**原地不动**，只报不搬。
+ *     第一次在 studio 出包前）。错误包 / 带 warning 的包**原地不动**，只报不搬
+ *     （契约 DoD：无 error 且无 warning，无豁免通道 —— CONVENTIONS §17 第 4 条（`docs/CONVENTIONS.md:467`））。
  *  ② 只 move，不删：`fs.renameSync`。仓库内同盘，不跨设备。
  *     目标已存在（同 id 的旧版本）→ 先把旧目录 **move 到 `_archive/`**，再落新包。
  *     任何情况下都不用 `rm`（CONVENTIONS 硬性禁令）。
@@ -21,6 +22,8 @@
  *   node tools/intake.js --dry-run       # 只报告将要做什么，不动盘
  *   node tools/intake.js --only <asset-id>
  *   node tools/intake.js --quiet
+ *   node tools/intake.js --reindex       # 只刷 kits/<kit>/kit.json 的 coverage.done；不跑入库、不碰 inbox/kits 内容
+ *                                        # （--dry-run/--quiet 对它同样有效；--only 只筛 inbox 包，对 reindex 无效）
  */
 
 const fs = require('fs');
@@ -199,9 +202,17 @@ function intake(opts) {
 
     const res = gbe.checkPackage(src);
     row.warnings = res.warnings || [];
-    if (!res.ok) {
+    // X-0032 A-4：契约 DoD（CONVENTIONS §17 第 4 条（`docs/CONVENTIONS.md:467`））要求入库「无 error 且无 warning」，
+    // 无豁免通道 —— 曾经这里只看 res.ok，带 warning 的包也能进 kits，弱于契约。
+    // 现在 warnings 非空同样拒收；warning 明细保留在 row.warnings 里单列展示（见 main 的 `!` 行）。
+    if (!res.ok || row.warnings.length > 0) {
       row.action = 'rejected';
       row.errors = (res.errors || []).map((e) => `${e.path}  ${e.message}`);
+      if (row.warnings.length > 0) {
+        row.errors.push(
+          `契约 DoD（CONVENTIONS §17 第 4 条 · docs/CONVENTIONS.md:467）：入库要求无 error 且无 warning（无豁免通道）—— 以下 ${row.warnings.length} 条 warning 按拒收处理`
+        );
+      }
       rows.push(row);
       continue;
     }
@@ -270,11 +281,42 @@ function main(argv) {
     else if (a === '--only') opts.only = argv[++i];
     else if (a === '--help' || a === '-h') {
       console.log('用法：node tools/intake.js [--dry-run] [--only <asset-id>] [--reindex] [--quiet]');
+      console.log('  --reindex  只刷 kits/*/kit.json 的 coverage.done，不跑入库、不碰 inbox/kits 内容');
       return 0;
     } else {
       console.error(`未知参数：${a}`);
       return 2;
     }
+  }
+
+  // ── --reindex：只刷 coverage.done（X-0032 A-3）────────────────────────────
+  // 文档承诺「--reindex 只刷 coverage.done」—— 此处必须【跳过 intake(opts)】。
+  // 曾经这里无条件先跑完整入库：inbox 里若有包，会被连带搬进 kits，
+  // 与「只重建派生快照」的语义完全相反（派生动作不许有副作用，CONVENTIONS §11）。
+  if (opts.reindex) {
+    const kits = [];
+    if (fs.existsSync(KITS)) {
+      for (const ent of fs.readdirSync(KITS, { withFileTypes: true })) {
+        if (ent.isDirectory()) kits.push(ent.name);
+      }
+    }
+    kits.sort();
+    let refreshed = 0;
+    for (const kit of kits) {
+      const cov = refreshCoverage(kit, opts);
+      if (cov && cov.changed) {
+        refreshed++;
+        if (!opts.quiet) console.log(`· ${kit}: coverage.done 已刷新`);
+      }
+    }
+    if (!opts.quiet) {
+      console.log(`kits ：${KITS}${opts.dryRun ? '   （--dry-run：未动盘）' : ''}`);
+      console.log('─'.repeat(96));
+    }
+    console.log(
+      `reindex：${kits.length} 个 kit，${refreshed} 个 coverage.done 有变化${opts.dryRun ? ' · dry-run' : ''}`
+    );
+    return 0;
   }
 
   const rows = intake(opts);
@@ -296,7 +338,9 @@ function main(argv) {
   }
 
   const kits = new Set(ok.map((r) => r.id.split('.')[0]));
-  if (opts.reindex || kits.size === 0) {
+  if (kits.size === 0) {
+    // inbox 没有成功入库的包时，仍顺带刷新全部 kit 的 coverage（等价一次 reindex）。
+    // 注意：--reindex 已在上面单独分支处理，不会走到这里。
     if (fs.existsSync(KITS)) {
       for (const ent of fs.readdirSync(KITS, { withFileTypes: true })) {
         if (ent.isDirectory()) kits.add(ent.name);

@@ -19,6 +19,18 @@
 
 ## [未发布]
 
+## [0.6.3] - 2026-10-13
+
+### 变更
+- **X-0032 遗留 A 类六修**（guild 审阅卡归口 gbe-assets 的未修项）：
+  - **A-3**：`tools/intake.js --reindex` 改为**只刷 coverage.done**（此前无条件先跑完整入库 —— 想「只重建派生快照」却会触发 inbox→kits 搬迁，派生动作不许有副作用）
+  - **A-4**：intake 按契约 DoD（`docs/CONVENTIONS.md` §17 第 4 条：无 error **且** 无 warning、无豁免通道）**拒收带 warning 的包** —— 此前只看 `res.ok`
+  - **A-5**：`preview.png` 无法解析 PNG 头由 warning 改 **error**（坏包不放行）；补 `files.preview[]` 与 `files.collision` 的存在性检查（此前只查 `files.model`）
+  - **A-7**：`wanan-wall-corner-a.json` 的 `params.instance_count` 5→6（与 instances 实际数对齐）；`assembly.js` 新增语义校验「instance_count 存在即须等于 instances.length」
+  - **A-8**：新增 `catalog/schema/ports.schema.json`（端口真源入 schema 校验，端口三态/`$` 文档键与既有 schema 同构）；`catalog.config.json` 删除重复登记的 `api_port`/`web_port`（唯一真源是 `catalog/ports.json`）
+  - **A-9**：`packages/schema/validate.js` 补 CLI 守卫（无参/`--help` 打印用法 exit 2 · 校验结果 exit 0/1）；README 订正「含 `$ref` 解析」的不实说法（本校验器**不支持** `$ref`，未知关键字静默忽略）
+- 测试：smoke 41→**49** · assembly 27→**30**（新增用例均含一正一反）
+
 ## [0.6.2] - 2026-10-13
 
 ### 变更

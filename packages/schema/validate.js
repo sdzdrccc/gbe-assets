@@ -17,6 +17,9 @@
  *   required / properties / additionalProperties(bool|schema)
  *   allOf / anyOf / oneOf / not
  * 忽略：$schema / $id / title / description / $comment（注释性）
+ *
+ * **不支持 `$ref`** —— 本仓所有 schema 均自包含，无跨文件引用；未知关键字一律静默忽略
+ * （X-0032 A-9：README 曾称其「含 $ref 解析」，与实现不符，已改为如实描述）。
  */
 
 const DATE_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/;
@@ -206,4 +209,47 @@ function validateAgainst(schema, data) {
   return { valid: errors.length === 0, errors };
 }
 
-module.exports = { validateAgainst, jsonType, DATE_TIME_RE };
+// ---------------------------------------------------------------------------
+// CLI（X-0032 A-9：此前只有 module.exports，无参运行静默退出 —— 补守卫）
+//   用法：node validate.js <schema.json> <data.json>
+//   退出码：0 = 通过 · 1 = 有错误 · 2 = 用法错误（与 packages/schema/index.js 的 CLI 同形态）
+// ---------------------------------------------------------------------------
+
+function main(argv) {
+  if (argv.length === 0 || argv[0] === '--help' || argv[0] === '-h') {
+    console.log('用法：node validate.js <schema.json> <data.json>');
+    console.log('  用本校验器（JSON Schema 子集）校验 data.json 是否符合 schema.json。');
+    console.log('  退出码：0 = 通过 · 1 = 有错误 · 2 = 用法错误。');
+    return 2;
+  }
+  if (argv.length < 2) {
+    console.error('用法：node validate.js <schema.json> <data.json>');
+    console.error(`  给了 ${argv.length} 个参数，需要 2 个（schema 与 data）。`);
+    return 2;
+  }
+  const fs = require('fs');
+  let schema;
+  let data;
+  try {
+    schema = JSON.parse(fs.readFileSync(argv[0], 'utf8'));
+  } catch (e) {
+    console.error(`✗ schema 读取/解析失败：${argv[0]} —— ${e.message}`);
+    return 1;
+  }
+  try {
+    data = JSON.parse(fs.readFileSync(argv[1], 'utf8'));
+  } catch (e) {
+    console.error(`✗ data 读取/解析失败：${argv[1]} —— ${e.message}`);
+    return 1;
+  }
+  const { valid, errors } = validateAgainst(schema, data);
+  errors.forEach((e) => console.error(`  ✗ ${e.path}  ${e.message}`));
+  console.log(valid ? `✓ 通过（${argv[1]}）` : `✗ 未通过（${errors.length} 处错误）`);
+  return valid ? 0 : 1;
+}
+
+module.exports = { validateAgainst, jsonType, DATE_TIME_RE, main };
+
+if (require.main === module) {
+  process.exit(main(process.argv.slice(2)));
+}

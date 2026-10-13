@@ -149,7 +149,7 @@
     "note": "§10.4 端到端 DoD 示范件：18 件程序化构件的第一次成套引用。此处是\"墙角片段\"而非完整建筑——完整性不是本次要证明的东西，可装配性才是。",
     "wall_module_m": 2,
     "story_height_m": 3,
-    "instance_count": 5
+    "instance_count": 6
   },
   "derived_from": null,
   "scene_budget": {
