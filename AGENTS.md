@@ -99,3 +99,64 @@
 
 > 记住：`docs/DECISIONS.md` 是**只追加**的。推翻一条旧裁决的方式是新增一条
 > `supersedes: ADR-xxxx` 的条目，而不是修改历史条目。
+
+---
+
+## 6. 文档地图 —— 什么住哪里 · 叫什么（★ 硬约束 · **2026-10-13 新增**）
+
+> ★ 来源：2026-10-13 大人「四个仓库问题都改了吗」→ 裁定「**全量对推**」。
+> ★ 与 `qiuyuan-guild/AGENTS.md` **§8 文档地图**同源（那边先立，这里按本仓实情对齐）。
+
+**判据**：★ **先问"这东西是谁产生的"** —— 产生方在哪，它（和它的文档）就住哪（与 §2 纪律 1 同源）。
+★ **命名再加一问**：**"这个名字是从哪来的？"** —— 来自**资产 id / 上游标识** ⇒ 跟随它；来自**文档标题** ⇒ 全大写。
+
+### 6.1 落点表（★ 本仓**实际存在**的）
+
+| 类 | 位置 | 命名 | 说明 |
+|---|---|---|---|
+| **开工纪律** | 仓根 `AGENTS.md` | 固定名 | ★ 本文件；★ 改它要写进 `CHANGELOG.md` 的新条目 |
+| **契约真源（机器可读）** | `catalog/schema/` | `*.schema.json` | ★★ **一切校验的依据**（`asset.v2` / `source.v2` / `assembly.v2` / `kit` / `collection`） |
+| **工程约定** | `docs/CONVENTIONS.md` | 固定名 | ★ **因此必须怎么做**（单位 / 轴心 / 模数 / 目录 / 归档…） |
+| **裁决台账** | `docs/DECISIONS.md` | 固定名 | ★ **ADR · 只追加**（§5 末句） |
+| **本仓方案** | `docs/PLAN.md` | 固定名 | 仓储端完整方案 |
+| ★ **历史档（刻意留在原位）** | `docs/CONVENTIONS-REVIEW.md` | 保留原名 | ★ README 标它「**历史，非待办**」—— ★ **但它被 `DECISIONS.md` 的 ADR 正文与 `CONVENTIONS.md` 的变更史引用** ⇒ ★ **移动它会改动历史叙述**（§7-3）⇒ ★ **判定：留在 `docs/`** |
+| **版本真源** | `VERSION` ＋ `CHANGELOG.md` | 固定名 | ★ **不许手改** —— 走 `node scripts/version.js`（§2.6）；★ `package.json.version` 同理 |
+| **校验器（双库共用一份）** | `packages/schema/` | `kebab-case.js` | ★ `@gbe/schema` —— ★ **只有一份实现**（§2.3） |
+| **入库 → 归档** | `inbox/` → **`_archive/`** | `inbox/<id>@<version>/` → `_archive/inbox/<id>@<version>/` | ★ **intake 完成后 move 归档，禁止 `rm -rf`**（`CONVENTIONS` §11） |
+| ★ **归档落点** | **`_archive/`** | `_archive/<asset-id>/<version>/` | ★ **契约 §11 登记的预留位**（有 `.gitkeep`）—— ★ 它看起来是空的，★ **但不是空壳** |
+| **仓储内容** | `kits/` `materials/` `assemblies/` `apps/` `blobs/` `clients/` `services/` | ★★ **目录名严格等于 id 第三段** | ★ 见 §3（**别加类别前缀**） |
+| **索引（运行时产物）** | `catalog/index.db` | —— | ★ **git 忽略**，可 `gbe reindex` 重建 |
+| **工具** | `scripts/` · `tools/` | `kebab-case.js` | `version.js` · `install-hooks.js` · `hooks/pre-push` · `tools/intake.js` |
+| **兜底配置** | `catalog.config.json` | 固定名 | 预算与模数的**默认兜底值** |
+| ★ **端口真源** | `catalog/ports.json` | 固定名 | ★★ **全项目唯一真源**（`gbe-studio` 单向同步自它，§1） |
+
+### 6.2 命名硬约束
+
+1. ★ **文档一律 `.md` ＋ 全大写-连字符**（`CONVENTIONS.md` · `DECISIONS.md` · `PLAN.md`）—— ★ 现 4 份都合规，★ **保持**。
+2. ★★ **文件名一律 ASCII**；★ 要写中文说明就写进文档**正文**，★ **别写进文件名**。
+3. ★★ **资产目录名严格等于 id 第三段**（§3 已列）—— ★ **不加类别前缀**（`roof-` 这类已废）。
+4. ★ **脚本一律 `kebab-case.js`**；**schema 一律 `*.schema.json`**。
+5. **不留空壳** —— ★ 但 ★ **`_archive/` 是例外**：它是**契约登记的归档位**，★ 空着是对的。
+
+---
+
+## 7. 文档的**移动**与**作废**（★ **删除见 §2.5**）
+
+> ★ 来源同 §6。★ **删除**的纪律**已经在 §2.5**（先列清单再确认 · inbox **move 归档** · **禁 `rm -rf`**）——
+> ★ 本节**只补它没写的两件**（移动 / 作废），★ **不重复 §2.5**（一条知识两处写 = 迟早不一致）。
+
+1. ★★ **移动即改引用** —— 任何**移动 / 重命名**（文件或目录），**同一笔提交**里改完所有引用：
+   ```bash
+   grep -rn --include=*.md --include=*.js --include=*.json -- "<旧文件名>" F:/zxc/Project/
+   ```
+   ★ **四仓全查**（`gbe-assets` / `gbe-studio` / `qiuyuan-guild` / `qiuyuan-dalu`）——
+   ★ 本仓的 `catalog/schema/` 与 `catalog/ports.json` **被另外三仓只读引用**
+   （如 `qiuyuan-guild/scripts/check-asset-ref.js` 的判据 `A3` 直接读 `asset.v2.schema.json`）。
+   ★★ **`git ls-files` 会把非 ASCII 路径转成八进制转义** ⇒ 数这类文件名要用 `os.walk` 复核，★ 否则**假绿 0**。
+2. **作废留指针** —— 作废件**不删**：★ 首行写作废声明并**指向正解**；
+   ★ 直接删掉而不留指针，★ **下一个人会重新踩**。
+3. ★★ **ADR 不受本节管** —— ★ `docs/DECISIONS.md` **只追加**：
+   ★ 推翻旧裁决 = **新增**一条 `supersedes: ADR-xxxx` 的；★ **历史条目一个字都不许改**（§5 末句同源）。
+4. ★ **"还在用 ⇒ 原地；不再用 ⇒ `_archive/`"** —— ★ 与下游 `qiuyuan-dalu` 的 `archive/` **同判据、不同名**。
+   ★ 注意分寸：★ **`CONVENTIONS-REVIEW.md` 不搬**（§6.1 已说明理由 —— ★ 被 ADR 正文引用）。
+5. **判据**：★ **"这个文件还有没有人读？"** —— 没人读且不会再有 ⇒ ★ 按 **§2.5** 处理；★ 还有人读 ⇒ **改，不删**。
