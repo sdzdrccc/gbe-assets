@@ -19,6 +19,11 @@
 
 ## [未发布]
 
+## [0.6.1] - 2026-10-13
+
+### 变更
+- pre-push 追加跨仓契约对齐校验（跑 guild 的 check-asset-ref.js）—— 补 gbe-assets 侧盲区
+
 ## [0.6.0] - 2026-10-12
 
 ### 新增（契约）—— **ADR-0008：`$` 前缀的键 = 文档性注释，不受 `additionalProperties: false` 约束**
