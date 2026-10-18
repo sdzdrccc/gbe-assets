@@ -1,7 +1,7 @@
 {
   "$comment": "★ 全项目端口【唯一真源】（CONVENTIONS §18）。gbe-studio/bridges/registry.json 是从本文件生成/校验的只读视图，禁止成为第二真源。修改端口只改这里，然后跑 studio 的 `node bridges/sync-ports.js`。",
   "ports_version": "1",
-  "updated_at": "2026-09-15",
+  "updated_at": "2026-10-17",
   "owner": "gbe-assets",
   "ports": [
     {
@@ -64,13 +64,22 @@
     },
     {
       "id": "unity-mcp",
-      "port": 8080,
+      "port": 8090,
       "protocol": "http",
       "owner": "gbe-studio",
       "purpose": "Unity MCP —— 预留，当前不占用",
       "required": false,
       "status": "deferred",
-      "note": "ADR-0004：Unity 延后。端口保留以免将来冲突。"
+      "note": "ADR-0004：Unity 延后。端口保留以免将来冲突。\n★ 2026-10-17（guild X-0050 / ADR-0029③）：原占 8080，因 8080 已被真实在跑的\n★ qiuyuan-game-ws 实际占用（保留位被实际服务占据 = 这条保留早已失效），\n★ 故把保留位挪到 8090 —— ★ 挪的是「没人用的预留」，不是「已经在听的生产端口」。"
+    },
+    {
+      "id": "qiuyuan-game-ws",
+      "port": 8080,
+      "protocol": "http",
+      "owner": "qiuyuan-dalu",
+      "purpose": "虬渊大陆游戏服务端 qydalud —— 客户端 WS（/ws）＋ GM 后台 REST（/api/stats · /api/gm/config）",
+      "required": true,
+      "note": "★ 登记而非新设：该端口自 2026-10-01 起实际在用（dalu docs/M1-IMPLEMENTATION.md：\n★ 原 8000 让给 UE MCP 后改 8080），此前**从未进本真源** ⇒ 属账实不符，X-0050 补齐。\n★ 改端口只改这里，然后同步 dalu 的 `QYD_LISTEN` 与客户端 `UQYDNetConfig` 默认地址。"
     },
     {
       "id": "gbe-assets-api",
