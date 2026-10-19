@@ -69,6 +69,39 @@ const validateKit = (k) => validate('kit', k);
 const validateCollection = (c) => validate('collection', c);
 const validatePorts = (p) => validate('ports', p);
 
+/**
+ * 门禁：`kit.categories` 必须落在 **asset.v2 ∪ assembly.v2** 的分类并集内（`X-0053` A-2）。
+ *
+ * ★ 为什么不是 `kit.schema.json` 里直接写 enum：
+ *   kit 的 categories 是**两个命名空间的并集**（资产分类 26 ＋ 装配分类 2），
+ *   写死在 kit.schema 里 = 第三份枚举副本；这里**现读两份真源**取并集，保证"新增分类只改一处"。
+ * ★ 为什么必须有这条：
+ *   旧描述写着"必须属于 asset.v2 的 category enum"，而**实现没有 enum** ⇒
+ *   真源 kit 带越界值照样过 smoke（49 通过 / 0 失败）= **假绿**（描述宣称的约束没有执法）。
+ */
+function checkKitCategories(kit) {
+  const errors = [];
+  if (!kit || typeof kit !== 'object') return { valid: false, errors: [{ path: '$', message: 'kit: 不是对象' }] };
+  const assetEnum = new Set((loadSchema('asset').properties.category || {}).enum || []);
+  const asmEnum = new Set((loadSchema('assembly').properties.category || {}).enum || []);
+  const allowed = new Set([...assetEnum, ...asmEnum]);
+  if (allowed.size === 0) {
+    return { valid: false, errors: [{ path: '$', message: '读不出分类枚举 —— 判据失效，禁止空集通过' }] };
+  }
+  const cats = kit.categories;
+  if (cats === undefined) return { valid: true, errors, warnings: [] };
+  if (!Array.isArray(cats)) return { valid: false, errors: [{ path: '$.categories', message: 'categories 必须是数组' }] };
+  cats.forEach((c, i) => {
+    if (!allowed.has(c)) {
+      errors.push({
+        path: `$.categories[${i}]`,
+        message: `未知分类 "${c}" —— 必须在 asset.v2（${assetEnum.size} 类）或 assembly.v2（${asmEnum.size} 类）的并集内`,
+      });
+    }
+  });
+  return { valid: errors.length === 0, errors, warnings: [] };
+}
+
 // ---------------------------------------------------------------------------
 // 门禁 1：契约版本闸门（ADR-0001 —— v1 一律拒收，不静默兼容）
 // ---------------------------------------------------------------------------
@@ -505,7 +538,13 @@ function main(argv) {
     const gate = gateSchemaVersion(data, path.basename(target));
     if (!gate.valid) return report(gate);
   }
-  return report(validate(kind, data));
+  const res = validate(kind, data);
+  if (kind === 'kit' && res.valid) {
+    // ★ 形态通过 ≠ 分类合法（A-2 的假绿就是这个缝）
+    const cat = checkKitCategories(data);
+    if (!cat.valid) return report({ valid: false, errors: (res.errors || []).concat(cat.errors) });
+  }
+  return report(res);
 }
 
 module.exports = {
@@ -522,6 +561,7 @@ module.exports = {
   validateSource,
   validateAssembly,
   validateKit,
+  checkKitCategories,
   validateCollection,
   validatePorts,
   gateSchemaVersion,

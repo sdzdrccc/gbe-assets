@@ -32,7 +32,7 @@ gbe-assets/
 ├── CHANGELOG.md             ★   更新日志 —— 变更内容真源
 ├── VERSION                  ★   版本号真源（单行 MAJOR.MINOR.PATCH）
 ├── AGENTS.md                    AI 助手在本仓的工作纪律（硬约束）
-├── CONTRIBUTING.md              人工协作者的上手说明
+├── （贡献指南已并入本 README「贡献指南」节 —— `X-0053` A-3）
 ├── LICENSE                      代码许可：MIT
 ├── LICENSE-ASSETS               资产许可：CC0-1.0
 ├── .gitattributes               统一 LF、二进制与派生文件标记
@@ -96,7 +96,7 @@ gbe-assets/
 │   └── intake.js           ★   inbox → kits 入库（先校验后搬、只 move 不删、旧版本进 _archive、刷新 coverage）
 │
 ├── docs/
-│   ├── DECISIONS.md         ★   决策台账（ADR-0001 ~ 0007）—— 为什么这么定
+│   ├── DECISIONS.md         ★   决策台账（ADR · **条数与最大号以文件尾为准**，本页不抄区间）—— 为什么这么定
 │   ├── CONVENTIONS.md       ★   双库共享约定 v1.5 —— 因此必须怎么做
 │   ├── PLAN.md                  仓储端完整方案（架构 / 契约 / 检索 / 下载 / 入库 / 路线图）
 │   └── CONVENTIONS-REVIEW.md    对齐前的审查存档 + 31 项处置记录（历史，非待办）
@@ -178,9 +178,8 @@ node tools/intake.js                 # 加 --dry-run 只报告不动盘；--rein
 node packages/schema/index.js assembly       assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
 node packages/schema/index.js assembly-check assemblies/cn-ancient/assemblies/building/wanan-wall-corner-a.json
 
-# 跑契约校验器的冒烟测试（构件级 49 项 + 装配级 30 项）
-node packages/schema/test/smoke.js
-node packages/schema/test/assembly.js
+# 跑契约校验器的测试（构件冒烟 / 装配判据 / kit 分类并集 —— ★ 条数以输出为准，别抄数字）
+npm test --prefix packages/schema
 ```
 
 ```js
@@ -194,11 +193,78 @@ console.log(a.ok, a.stats);   // 引用版本 / 对接数 / 面数 / 收容式�
 
 ---
 
+## 贡献指南（`X-0053` A-3：原 `CONTRIBUTING.md` 合并至此）
+
+> 本库有两类贡献者：**人** 与 **AI 助手**。AI 助手另见 [`AGENTS.md`](AGENTS.md)。
+> 入库主通道是 **GBE-Studio 投递**（带完整元数据、schema 校验通过）；网页上传只是兜底。
+> 开工前必读：`docs/DECISIONS.md`（已裁决，不重复讨论）→ `docs/CONVENTIONS.md`（单位/轴心/id/模数/插槽）→ `catalog/schema/`（有歧义以它为准）。
+
+### 加一件资产（标准流程）
+
+```
+1. Studio 侧生成 → 拆分 → 精修 → 打包
+       ↓ 投递
+2. inbox/<asset-id>@<version>/
+       ↓
+3. 校验：node packages/schema/index.js package inbox/<asset-id>@<version>/
+       ↓ 通过
+4. intake：复检 → 派生（预览 512 / LOD / 多格式 / 引擎包装）→ 索引
+       ↓
+5. move 归档：inbox/... → _archive/inbox/...
+       ↓
+6. kits/<kit>/<category>/<name>/   ← 入库完成
+```
+
+**必须通过**：`schema_version = "2"`（v1 直接拒收 · ADR-0001）· 1u = 1m / bottom-center / `+Y up / -Z forward` / `dimensions_m = [x 宽, y 高, z 深]` · 面数在 `kit.budgets` 内 · L1–L3 至少 1 个插槽且落 `snap_m` 网格 · `preview.png` 512×512 · `license` 为 SPDX · **目录名严格等于 `asset.id` 第三段**。
+
+### 目录与命名
+
+```
+kits/<kit>/<category>/<name>/
+     └─ 例：kits/cn-ancient/components/roof/xuanshan-single-a/
+                ⇅ id: cn-ancient.roof.xuanshan-single-a
+```
+
+| 规则 | 对 | 错 |
+|---|---|---|
+| 目录名 == id 第三段 | `roof/xuanshan-single-a/` | `roof/roof-xuanshan-single-a/` |
+| 全小写 kebab-case | `xieshan-double-a` | `XieShan_Double_A` |
+
+### 加一套 kit
+
+1. 建 `kits/<kit-id>/kit.json`（参考 `kits/cn-ancient/kit.json`）
+2. **必须**声明 `grid`（模数）与 `budgets`（面数预算）—— 真源，不是可选
+3. `categories` 列出本 kit 启用的分类子集（★ 取值须在 **`asset.v2` 26 类 ∪ `assembly.v2` 2 类**的并集内，由 `checkKitCategories()` 执法）
+4. 新增分类 → 先改 schema（资产分类改 `asset.v2`，装配分类改 `assembly.v2`），再同步 `CONVENTIONS.md §4` 的镜像
+
+### 加一条装配清单
+
+格式见 `catalog/schema/assembly.v2.schema.json` 与 `docs/CONVENTIONS.md §19.4`。要点：**不烘焙几何**（只存引用 + 变换）· 引用写版本范围（`^1.0.0`）· 过 §19.5 八条判据（插槽互认 / 方向反向 / 网格对齐 / 无穿插 / **承重链落地闭合**）。
+
+### 硬性禁令（违反即拒）
+
+1. 禁止 `rm -rf` 投递目录或资产目录；inbox 处理完一律 **move 归档**
+2. 禁止提交凭证、本机绝对路径、`gbe.config.json`
+3. 禁止绕过 `validate` 直接改 `index.db`（可重建缓存）
+4. 禁止硬编码第二份分类枚举 / 面数预算 / 模数 / 材质表 —— 改真源
+5. 禁止把 `CONVENTIONS.md` 的镜像表当真源去改代码
+
+### 提交
+
+```
+<type>(<scope>): <subject>
+type: feat | fix | docs | schema | data | chore
+```
+
+**改契约时**：`catalog/schema/` + `docs/CONVENTIONS.md` + 两份 PLAN + `BUILDING-DECOMPOSITION.md` 必须在**同一提交内**同步（原则 5）；CI 会校验镜像与真源一致。
+
+---
+
 ## 文档（读之前先读这个顺序）
 
 | 文档 | 作用 |
 |---|---|
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。ADR-0001 ~ 0007 已生效 |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | **决策台账（ADR）** —— 为什么这么定。★ **最新号看文件尾**（本页不写区间：`X-0053` A-4 实测写 0007 时已有 0008） |
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | **共享约定 v1.5** —— 因此必须怎么做（单位/轴心/朝向 · id · 模数 · 插槽 · 装配 · 注册表） |
 | [`docs/PLAN.md`](docs/PLAN.md) | 仓储端完整方案（架构 · 契约 · 检索 · 下载 · 入库 · 路线图） |
 | [`CHANGELOG.md`](CHANGELOG.md) | 更新日志（版本号的真源伴随物） |

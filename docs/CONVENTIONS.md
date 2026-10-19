@@ -7,7 +7,9 @@
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
 > 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0008）
-> **当前版本：v1.5（2026-10-12）** — v1.4 + 依 ADR-0008：新增原则 7「`$` 前缀的键 = 文档性注释，不参与契约语义」，五个 schema 的 27 处封闭 / map 节点统一放行该前缀
+> **当前版本：v1.6（2026-10-19）** — v1.5 + `X-0053` A-1/A-2：**§4 分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类，`kit.categories` 取并集、由 `checkKitCategories()` 执法）＋ 新增 **§18.1 CI 覆盖边界**（把"由 CI 校验"逐条落到实处）
+>
+> **上一版**：v1.5（2026-10-12）— 依 ADR-0008：新增原则 7「`$` 前缀的键 = 文档性注释，不参与契约语义」，五个 schema 的 27 处封闭 / map 节点统一放行该前缀
 >
 > **上一版**：v1.4（2026-09-15）— 依 ADR-0007：MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度，官方实现进注册表但**不预设首选**；端口 `status` 增 `reserved` 三态
 
@@ -145,10 +147,11 @@ kits/<kit>/<category>/<name>/
 
 ## 4. 分类枚举
 
-- **真源**：`catalog/schema/asset.schema.json` 中 `category` enum；kit 可在 `kit.json.categories` 声明本 kit 启用子集。
+- **真源（两份，不是一个）**：**资产分类** → `catalog/schema/asset.v2.schema.json` 的 `category` enum（**26 类**）；**装配分类** → `catalog/schema/assembly.v2.schema.json` 的 `category` enum（**2 类**：`assemblies/building` / `assemblies/district`）。
+- `kit.json.categories` = 这两份的**并集子集**，由 `@gbe/schema` 的 **`checkKitCategories()`** 执法（★ 它现读两份 schema 求并集，`kit.schema.json` **不写 enum** —— 写了就是第三份副本）。
 - 生产端、仓储端、网页筛选、CLI 过滤**一律从 schema 读取**。
-- 新增分类：改 schema → 升契约版本 → 双库 CI 跟红再修；禁止在 `pack.js` / `classify.js` 私自扩表。
-- 下面这份全集是**人类可读镜像**（§0.1），CI 校验与 schema enum 一致；**不要把它当第二真源**。
+- 新增分类：改对应 schema → 升契约版本 → 双库 CI 跟红再修；禁止在 `pack.js` / `classify.js` 私自扩表。
+- 下面这份全集是**人类可读镜像**（§0.1），**覆盖两份真源的并集**；CI 由 `scripts/check-doc-enums.js` 校验逐字一致（`X-0053` A-2：此前写着"CI 校验"，而**没有 CI、也没有脚本读它**）。**不要把它当第二真源**。
 
 ```
 components/{roof,wall,pillar,beam,bracket,base,door-window,railing,ornament}
@@ -499,6 +502,26 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | `deferred` | 整个引擎延后（ADR-0004 Unity） | `deferred_ports` |
 
 > `reserved` 与 `deferred` **不可混用**：前者是"实现已登记、只是没选它"，后者是"引擎整体不排期"。
+
+### 18.1 CI 覆盖边界（`X-0053` A-1 · ★ 2026-10-19 新增）
+
+★ 此前本文件 / `AGENTS.md` / `PLAN.md` / `README.md` **四处**写着"由 CI 校验"，而**全仓没有 CI**
+（`ls .github` → 不存在）—— ★ 那是**把愿望写成现状**，比没有约定更坏。
+现 `.github/workflows/ci.yml` 已建；但它**只覆盖下表「已校验」那几行**，其余的"由 CI 校验"属**待补**。
+
+| 约定 | CI 现状 |
+|---|---|
+| §4 分类镜像 ↔ `asset.v2` ∪ `assembly.v2` | ✅ `scripts/check-doc-enums.js` |
+| `kit.categories` ∈ 两份 enum 的并集 | ✅ `checkKitCategories()`（`npm test`） |
+| 资产包语法 / 装配 §19.5 八条判据 | ✅ `test/smoke.js` ＋ `test/assembly.js` |
+| 入库 dry-run（不落盘） | ✅ `tools/intake.js --dry-run` |
+| 版本 / CHANGELOG / 镜像 / tag 锚点 | ✅ `scripts/version.js check` |
+| §1 轴心 ↔ Studio `pipeline/origin-rules.md` | ⏳ **未校验**（跨仓，需 studio 侧出机读镜像） |
+| §0.1 其余镜像（预算 / 模数 / 材质）↔ 真源 | ⏳ **未校验** |
+| §18 四份文档「同一提交内同步」 | ⏳ **未校验**（需 diff 级判据） |
+
+★ **判据**：写"由 CI 校验"之前先看这张表 —— 不在表里的，要么写成"待补"，要么补脚本。
+★ 这张表本身也要跟着 `ci.yml` 走：**加一步 CI，就回填一行**。
 
 ---
 

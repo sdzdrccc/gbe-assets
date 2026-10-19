@@ -1,0 +1,54 @@
+name: CI
+
+# gbe-assets 的门禁（`X-0053` A-1：此前**全仓没有 CI**，而四份活文档把 CI 当成既有门禁）。
+# 全部零依赖、离线可跑 —— 不需要 checkout 兄弟仓。
+#
+# 与本地等价：cd packages/schema && npm test ＋ 真源 kit 校验 ＋ 入库 dry-run ＋ 版本校验。
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # version.js check 用 git 基线判「未记录变更」，需要完整历史
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: schema tests (smoke + assembly + kit-categories)
+        working-directory: packages/schema
+        run: npm test
+
+      - name: 真源 kit 校验（形态 ＋ 分类并集）
+        run: node packages/schema/index.js kit kits/cn-ancient/kit.json
+
+      - name: 文档镜像 ↔ schema 真源（§4 分类）
+        run: node scripts/check-doc-enums.js
+
+      - name: 装配清单校验（若存在）
+        run: |
+          set -e
+          found=0
+          for f in $(find assemblies -name '*.json' 2>/dev/null); do
+            found=1
+            node packages/schema/index.js assembly-check "$f"
+          done
+          if [ "$found" = "0" ]; then
+            echo "assemblies/ 下暂无清单 → 跳过（NOT a pass）"
+          fi
+
+      - name: 入库 dry-run（不落盘）
+        run: node tools/intake.js --dry-run
+
+      - name: version.js check
+        run: node scripts/version.js check

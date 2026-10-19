@@ -19,6 +19,20 @@
 
 ## [未发布]
 
+## [0.7.1] - 2026-10-19
+
+### 修错
+- **补 CI**：此前 `AGENTS` / `CONVENTIONS` / `PLAN` / `README` 四处把 CI 当既有门禁，而仓里 **`.github` 不存在** ⇒ 新建 `.github/workflows/ci.yml`（schema 测试 / 真源 kit / 装配清单 / 入库 dry-run / 版本 / 文档镜像）
+- **分类假绿**：`kit.schema.json` 描述写「必须属于 asset.v2 的 category enum」，但**实现没有 enum** ⇒ 越界值照样过 smoke（49 通过 / 0 失败）。现由 `checkKitCategories()` 现读 **asset.v2（26 类）∪ assembly.v2（2 类）** 逐项执法
+- **§4 真源说法**：原文把 `assemblies/*` 也归给 `asset.v2`（该 enum 里并没有）→ 拆成「资产 26 类 / 装配 2 类」两份真源，`kit.categories` 取并集
+- **README ADR 区间**：`0001 ~ 0007` 改指针（实测最新已 0008，手抄必腐）
+
+### 变更
+- `CONVENTIONS` **v1.5 → v1.6**：§4 真源拆分 ＋ 新增 **§18.1「CI 覆盖边界」**（逐条标注"已校验 / 待补"，不再把愿望写成现状）
+- `CONTRIBUTING.md` **合并进 README**「贡献指南」节（`X-0053` A-3 的唯一一条合并建议），两处引用同步
+- `npm test`：只跑 smoke → **smoke ＋ assembly ＋ kit-categories**（装配 30 项此前没有 npm 入口）
+- 新增 `scripts/check-doc-enums.js`（§4 镜像 ↔ schema 逐字一致，进 CI）
+
 ## [0.7.0] - 2026-10-18
 
 ### 变更

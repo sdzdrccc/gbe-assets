@@ -379,7 +379,7 @@ inbox/<asset-id>@<version>/     ← studio 投递，或网页上传兜底（裸�
 
 ```text
 gbe-assets/
-├── README.md / LICENSE / CONTRIBUTING.md / AGENTS.md
+├── README.md / LICENSE / AGENTS.md（贡献指南并入 README）
 ├── catalog.config.json          # 全库配置：单位、网格模数、面数预算、默认 kit、启用引擎
 │
 ├── catalog/                     # ★ 目录层

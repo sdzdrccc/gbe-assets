@@ -9,7 +9,7 @@
     "assembly.js"
   ],
   "scripts": {
-    "test": "node test/smoke.js"
+    "test": "node test/smoke.js && node test/assembly.js && node test/kit-categories.js"
   },
   "keywords": [
     "gbe",

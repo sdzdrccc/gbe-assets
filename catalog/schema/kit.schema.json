@@ -16,7 +16,7 @@
     "categories": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
-      "description": "本 kit 启用的 category 子集，取值必须属于 asset.v2 的 category enum。"
+      "description": "本 kit 启用的 category 子集。取值必须落在 asset.v2（26 类）∪ assembly.v2（2 类）的并集内 —— 由 @gbe/schema 的 checkKitCategories() 执法（本 schema 不写 enum，避免第三份副本）。"
     },
 
     "grid": {
