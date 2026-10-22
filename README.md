@@ -61,7 +61,7 @@ gbe-assets/
 │           └── assembly.js         装配级冒烟测试（30 项：正向 + 八条判据逐条反例）
 │
 ├── kits/                    ① 存储层 · 资产实体（权威）
-│   └── cn-ancient/                 中国古建风格 kit（当前 24 件程序化构件：18 primitive ＋ 民居六件灰模）
+│   └── cn-ancient/                 中国古建风格 kit（当前 40 件程序化资产：24 建筑构件 ＋ 16 村落皮肤/道具）
 │       ├── kit.json            ★  模数网格 / 面数预算 / 材质分组 / 覆盖度（kit 内的真源）
 │       └── <category>/<name>/      每件资产一个目录（目录名 = asset.id 第三段，无类别前缀）
 │           ├── asset.json          资产契约实例（asset.v2）

@@ -77,6 +77,11 @@
       "hang-tu",
       "qing-zhuan"
     ],
+    "plant": [
+      "cao-lv",
+      "ye-lu",
+      "ku-huang"
+    ],
     "textile": [
       "zhu-lian"
     ]
@@ -130,8 +135,40 @@
       "done": 1,
       "planned": 6
     },
-    "assemblies/building": {
+    "terrain/ground-tile": {
+      "done": 3,
+      "planned": 3
+    },
+    "nature/tree": {
+      "done": 1,
+      "planned": 1
+    },
+    "nature/rock": {
       "done": 2,
+      "planned": 2
+    },
+    "nature/plant": {
+      "done": 2,
+      "planned": 2
+    },
+    "props/lighting": {
+      "done": 1,
+      "planned": 1
+    },
+    "props/street": {
+      "done": 4,
+      "planned": 4
+    },
+    "props/ritual": {
+      "done": 1,
+      "planned": 1
+    },
+    "props/furniture": {
+      "done": 2,
+      "planned": 2
+    },
+    "assemblies/building": {
+      "done": 3,
       "planned": 8
     }
   }

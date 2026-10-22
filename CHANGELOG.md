@@ -19,6 +19,21 @@
 
 ## [未发布]
 
+## [0.9.0] - 2026-10-22
+
+### 新增
+- 入库村落皮肤与道具两批共 16 件（均 1.0.0 · 程序化 · 0 credit）：
+  - 第一批：`terrain/ground-tile` 3（土 / 草 / 土路）· `nature/tree` 老槐 1 ·
+    `nature/rock` 山石 2 · `nature/plant` 草木 2。
+  - 第二批：`props/street` 4（柴堆 / 晒架 / 篱笆 / 石碾）· `props/furniture` 2（药篓 / 农具）·
+    `props/ritual` 1（八系测灵盘）· `props/lighting` 1（灯笼杆）。
+  `coverage` 八类全部 `done = planned`：地面 3/3 · 树 1/1 · 石 2/2 · 草木 2/2 ·
+  街具 4/4 · 家具 2/2 · 法器 1/1 · 照明 1/1。
+- `kit.json.materials` 新增 `plant` 组（`cao-lv` / `ye-lu` / `ku-huang`）。
+
+### 变更
+- 村落皮肤与道具 16 件（8 类全部补齐）
+
 ## [0.8.0] - 2026-10-22
 
 ### 新增
