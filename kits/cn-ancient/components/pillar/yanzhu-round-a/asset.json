@@ -1,0 +1,98 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.pillar.yanzhu-round-a",
+  "name": "檐柱（圆柱）",
+  "version": "1.0.0",
+  "status": "published",
+  "flags": [
+    "needs-material-review"
+  ],
+  "kit": "cn-ancient",
+  "category": "components/pillar",
+  "tier": "component",
+  "granularity": "L2",
+  "tags": [
+    "pillar",
+    "column",
+    "eave",
+    "timber",
+    "程序化"
+  ],
+  "geometry": {
+    "dimensions_m": [
+      0.5,
+      3,
+      0.5
+    ],
+    "pivot": "bottom-center",
+    "axis": {
+      "up": "+Y",
+      "forward": "-Z"
+    },
+    "polycount": 60,
+    "vertices": 180
+  },
+  "files": {
+    "model": {
+      "lod0": "lod0.glb"
+    },
+    "preview": [
+      "preview.png"
+    ],
+    "collision": null
+  },
+  "shell": {
+    "has_uv": false,
+    "manifold": true,
+    "solidified": true
+  },
+  "materials": {
+    "slots": [
+      {
+        "slot": "pillar",
+        "ref": "timber/ben-se"
+      },
+      {
+        "slot": "trim",
+        "ref": "timber/hei-qi"
+      }
+    ],
+    "embedded_textures": 0
+  },
+  "collision": "box",
+  "sockets": [
+    {
+      "name": "bottom",
+      "type": "ground-foot",
+      "direction": "-y",
+      "position_m": [
+        0,
+        0,
+        0
+      ],
+      "mate_types": [
+        "stack-up",
+        "roof-seat"
+      ],
+      "grid_locked": true,
+      "note": "坐在柱础顶面（plinth-fupen-a 的 top）"
+    },
+    {
+      "name": "top",
+      "type": "stack-up",
+      "direction": "+y",
+      "position_m": [
+        0,
+        3,
+        0
+      ],
+      "mate_types": [
+        "ground-foot"
+      ],
+      "grid_locked": true,
+      "note": "柱头承额枋 / 梁"
+    }
+  ],
+  "license": "CC0-1.0",
+  "author": "GBE-Studio · 程序化生成器（参数化，非 AI 生成）"
+}

@@ -1,0 +1,183 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.assembly.yingshan-roof-test-a",
+  "name": "槐阴村·硬山屋顶试装（灰模）",
+  "kit": "cn-ancient",
+  "category": "assemblies/building",
+  "granularity": "L0",
+  "grid_snap_m": 0.5,
+  "instances": [
+    {
+      "instance_id": "wall-01",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -4,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "wall-02",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -2,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-01::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-03",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-02::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-04",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          2,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-03::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-05",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          4,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-04::end-east"
+      }
+    },
+    {
+      "instance_id": "roof-01",
+      "asset": {
+        "id": "cn-ancient.roof.yingshan-single-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          3,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "wall-03::top"
+      },
+      "note": "10 m 屋面覆盖五段 2 m 墙。"
+    },
+    {
+      "instance_id": "ridge-01",
+      "asset": {
+        "id": "cn-ancient.roof.ridge-main-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          5,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "roof-01::ridge-seat"
+      },
+      "note": "正脊压在屋脊上，10 m 与屋面同长。"
+    }
+  ],
+  "params": {
+    "note": "屋顶试装：5 段 2 m 直墙（共 10 m）＋ 1 件硬山整体屋面 ＋ 1 件正脊。只验屋面/正脊的对接、网格与承重链；台基 / 山墙 / 门窗不在本清单。",
+    "wall_module_m": 2,
+    "story_height_m": 3,
+    "instance_count": 7
+  },
+  "derived_from": null,
+  "scene_budget": {
+    "lod0": 350000,
+    "lod1": 90000,
+    "proxy": 12000
+  }
+}

@@ -95,15 +95,15 @@
   "coverage": {
     "$comment": "派生快照（可重建）。由 tools/intake.js 入库时刷新，等价于 gbe reindex；禁止手工维护。",
     "components/roof": {
-      "done": 6,
+      "done": 8,
       "planned": 18
     },
     "components/wall": {
-      "done": 2,
+      "done": 3,
       "planned": 3
     },
     "components/pillar": {
-      "done": 1,
+      "done": 2,
       "planned": 4
     },
     "components/beam": {
@@ -119,7 +119,7 @@
       "planned": 5
     },
     "components/door-window": {
-      "done": 0,
+      "done": 2,
       "planned": 4
     },
     "components/railing": {
@@ -131,7 +131,7 @@
       "planned": 6
     },
     "assemblies/building": {
-      "done": 1,
+      "done": 2,
       "planned": 8
     }
   }

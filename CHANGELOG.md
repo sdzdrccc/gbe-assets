@@ -19,6 +19,24 @@
 
 ## [未发布]
 
+## [0.8.0] - 2026-10-22
+
+### 新增
+- 入库 `cn-ancient.roof.yingshan-single-a@1.0.0`（程序化灰模 · 10 × 2 × 7 m · 16 三角）。
+- 入库民居五件灰模（均 1.0.0 · 程序化 · 0 credit）：
+  `pillar.yanzhu-round-a`（檐柱）· `roof.ridge-main-a`（正脊）· `wall.shanqiang-a`（硬山山墙）·
+  `door-window.door-panel-double-a`（双扇板门）· `door-window.window-fan-lattice-a`（扇形格扇窗）。
+  `coverage` 刷新：roof **6 → 8** · wall **2 → 3** · pillar **1 → 2** · door-window **0 → 2**。
+  民居形制 18 类至此全部在库。
+- 新增装配清单 `assemblies/cn-ancient/assemblies/building/yingshan-roof-test-a.json`
+  （5 段直墙 ＋ 1 件硬山屋面 ＋ 1 件正脊；7 实例 / 3 独特构件，`assembly-check` 0 警告）。
+- 新增装配清单 `assemblies/cn-ancient/assemblies/building/minju-hard-mountain-a.json`
+  （**首栋完整民居**：8 × 7 m 硬山；24 实例 / 8 独特构件 / 1324 面，复用比 3.0，`assembly-check` 0 警告）。
+  墙与山墙平接、不用角墩；门窗暂为外贴填充件（本版不做墙洞）。
+
+### 变更
+- 民居六件程序化灰模入库 + 首栋硬山民居装配
+
 ## [0.7.1] - 2026-10-19
 
 ### 修错

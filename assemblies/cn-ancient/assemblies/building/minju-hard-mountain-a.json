@@ -1,0 +1,536 @@
+{
+  "schema_version": "2",
+  "id": "cn-ancient.assembly.minju-hard-mountain-a",
+  "name": "槐阴村·硬山民居（灰模首栋）",
+  "kit": "cn-ancient",
+  "category": "assemblies/building",
+  "granularity": "L0",
+  "grid_snap_m": 0.5,
+  "instances": [
+    {
+      "instance_id": "wall-f1",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -3,
+          0,
+          -3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "wall-f2",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -1,
+          0,
+          -3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-f1::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-f3",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          1,
+          0,
+          -3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-f2::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-f4",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3,
+          0,
+          -3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-f3::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-b1",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -3,
+          0,
+          3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "wall-b2",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -1,
+          0,
+          3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-b1::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-b3",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          1,
+          0,
+          3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-b2::end-east"
+      }
+    },
+    {
+      "instance_id": "wall-b4",
+      "asset": {
+        "id": "cn-ancient.wall.qiang-straight-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3,
+          0,
+          3
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "end-west": "wall-b3::end-east"
+      }
+    },
+    {
+      "instance_id": "gable-w",
+      "asset": {
+        "id": "cn-ancient.wall.shanqiang-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -4.25,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "gable-e",
+      "asset": {
+        "id": "cn-ancient.wall.shanqiang-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          4.25,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-c",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-fw",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -3.5,
+          0,
+          -2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-fm",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          -2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-fe",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3.5,
+          0,
+          -2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-bw",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -3.5,
+          0,
+          2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-bm",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-be",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3.5,
+          0,
+          2.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-mw",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          -2,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "col-me",
+      "asset": {
+        "id": "cn-ancient.pillar.yanzhu-round-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          2,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      }
+    },
+    {
+      "instance_id": "roof-01",
+      "asset": {
+        "id": "cn-ancient.roof.yingshan-single-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          3,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "col-c::top"
+      },
+      "note": "屋面 bottom 落中心柱顶；四周墙顶与其余柱顶在同一 y=3 平面上承托。"
+    },
+    {
+      "instance_id": "ridge-01",
+      "asset": {
+        "id": "cn-ancient.roof.ridge-main-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          5,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "roof-01::ridge-seat"
+      }
+    },
+    {
+      "instance_id": "door-01",
+      "asset": {
+        "id": "cn-ancient.door-window.door-panel-double-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          -3.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "note": "贴在前墙外皮前 0.125 m（门厚 0.25，墙皮 z=-3.25）；本版不做墙洞，下一版改嵌装。"
+    },
+    {
+      "instance_id": "sill-01",
+      "asset": {
+        "id": "cn-ancient.base.curb-stone-straight",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3,
+          0,
+          -3.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "note": "窗台石：2 m 阶条石，背贴前墙外皮。"
+    },
+    {
+      "instance_id": "window-01",
+      "asset": {
+        "id": "cn-ancient.door-window.window-fan-lattice-a",
+        "version": "^1.0.0"
+      },
+      "transform": {
+        "position": [
+          3,
+          0.5,
+          -3.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1
+      },
+      "sockets": {
+        "bottom": "sill-01::top"
+      },
+      "note": "窗坐在窗台石上，底面 y=0.5。"
+    }
+  ],
+  "params": {
+    "note": "首栋完整民居：8 × 7 m，硬山。前后各 4 段直墙 + 两山墙 + 9 根檐柱 + 10×7 硬山屋面 + 正脊 + 双扇门 + 扇形窗。墙与山墙平接，不用角墩；门窗暂为外贴填充件，不做墙洞。",
+    "wall_module_m": 2,
+    "story_height_m": 3,
+    "bays": 4,
+    "depth_m": 7,
+    "instance_count": 24
+  },
+  "derived_from": null,
+  "scene_budget": {
+    "lod0": 350000,
+    "lod1": 90000,
+    "proxy": 12000
+  }
+}
