@@ -517,6 +517,30 @@ ok('正例：v2 包（含 512 预览图）通过全部检查', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
+ok('正例：kits 已入库目录名 = id 第三段（inKits 模式）通过；inbox 模式则报目录名', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gbe-kits-'));
+  const sub = path.join(dir, 'xuanshan-single-a');
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, 'asset.json'), JSON.stringify(makeAsset(), null, 2));
+  fs.writeFileSync(path.join(sub, 'source.json'), JSON.stringify(makeSource(), null, 2));
+  const png = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png, 0);
+  png.writeUInt32BE(13, 8);
+  Buffer.from('IHDR').copy(png, 12);
+  png.writeUInt32BE(512, 16);
+  png.writeUInt32BE(512, 20);
+  fs.writeFileSync(path.join(sub, 'preview.png'), png);
+  fs.writeFileSync(path.join(sub, 'model.glb'), '');
+
+  const kits = gbe.checkPackage(sub, { inKits: true });
+  assert.ok(kits.ok, JSON.stringify(kits.errors, null, 2));
+  const inbox = gbe.checkPackage(sub);
+  assert.ok(!inbox.ok, 'inbox 模式应要求 <id>@<version> 目录名');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
 ok('负例：预览图尺寸不对被拦', () => {
   const fs = require('fs');
   const os = require('os');

@@ -351,7 +351,8 @@ function readPngSize(file) {
  * @param {string} dir 形如 <gbe-assets>/inbox/<asset-id>@<version>/
  * @returns {{ok: boolean, errors: any[], warnings: any[], asset?: object}}
  */
-function checkPackage(dir) {
+function checkPackage(dir, opts = {}) {
+  const inKits = !!opts.inKits;
   const errors = [];
   const warnings = [];
   const push = (label, res) => {
@@ -413,7 +414,8 @@ function checkPackage(dir) {
   const at = base.lastIndexOf('@');
   const dirBase = at >= 0 ? base.slice(0, at) : base;
   const dirVersion = at >= 0 ? base.slice(at + 1) : '';
-  push('', checkInboxDirName(asset, dirBase, dirVersion));
+  // inbox 包：目录名 `<id>@<version>`；kits 已入库资产：目录名 = id 第三段（§2.2）
+  push('', inKits ? checkDirectoryName(asset, base) : checkInboxDirName(asset, dirBase, dirVersion));
   push('', checkBudget(asset));
   push('', checkGridAlignment(asset));
   push('', checkSocketsCompleteness(asset));

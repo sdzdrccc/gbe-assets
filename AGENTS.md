@@ -84,6 +84,8 @@
 - [ ] 首次 clone 后跑过 `node scripts/install-hooks.js`（启用 pre-push 校验）
 - [ ] 双仓同机时跑 `node scripts/check-release-compat.js`（共享命令语义；★ 跳过不是通过）
 - [ ] `node packages/schema/test/smoke.js` 全绿
+- [ ] `node scripts/check-kits.js` 通过（**已入库 40 件资产**逐件校验；`--strict` 连警告一起卡）
+- [ ] `node scripts/check-assemblies.js` 通过（**零份清单 = 失败**，不再「跳过 exit 0」）
 - [ ] 改过 schema 的话：`CONVENTIONS.md` 镜像表同步了，两份 PLAN 也同步了
 - [ ] 新增字段：schema 里加了，`CONVENTIONS` 里说明了语义，示例也更新了
 - [ ] 没有新增硬编码的第二份枚举 / 预算 / 模数

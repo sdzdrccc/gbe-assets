@@ -35,17 +35,11 @@ jobs:
       - name: 文档镜像 ↔ schema 真源（§4 分类）
         run: node scripts/check-doc-enums.js
 
-      - name: 装配清单校验（若存在）
-        run: |
-          set -e
-          found=0
-          for f in $(find assemblies -name '*.json' 2>/dev/null); do
-            found=1
-            node packages/schema/index.js assembly-check "$f"
-          done
-          if [ "$found" = "0" ]; then
-            echo "assemblies/ 下暂无清单 → 跳过（NOT a pass）"
-          fi
+      - name: 已入库资产逐件校验（kits/）
+        run: node scripts/check-kits.js
+
+      - name: 装配清单校验（零份 = 失败，不再跳过）
+        run: node scripts/check-assemblies.js
 
       - name: 入库 dry-run（不落盘）
         run: node tools/intake.js --dry-run

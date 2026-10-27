@@ -515,6 +515,8 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | `kit.categories` ∈ 两份 enum 的并集 | ✅ `checkKitCategories()`（`npm test`） |
 | 资产包语法 / 装配 §19.5 八条判据 | ✅ `test/smoke.js` ＋ `test/assembly.js` |
 | 入库 dry-run（不落盘） | ✅ `tools/intake.js --dry-run` |
+| **已入库资产**（`kits/`）逐件 schema / 文件 / 目录名 | ✅ `scripts/check-kits.js`（40 件；`--strict` 连警告一起卡） |
+| **已入库装配清单**（零份 = 失败） | ✅ `scripts/check-assemblies.js`（不再「没有清单就跳过 exit 0」） |
 | 版本 / CHANGELOG / 镜像 / tag 锚点 | ✅ `scripts/version.js check` |
 | §1 轴心 ↔ Studio `pipeline/origin-rules.md` | ⏳ **未校验**（跨仓，需 studio 侧出机读镜像） |
 | §0.1 其余镜像（预算 / 模数 / 材质）↔ 真源 | ⏳ **未校验** |
