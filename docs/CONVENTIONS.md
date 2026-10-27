@@ -7,7 +7,8 @@
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
 > 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0008）
-> **当前版本：v1.8（2026-10-27）** — v1.7 ＋ v1.8：4 处 schema 死链改 `asset.v2` · Unity 端口 **8080 → 8090** · `_archive` 扁平形制 · LFS/submodule 实测更正 · **intake 同版本异内容拒绝（`--force` 才覆盖，同版本同内容跳过）** · **未执法的「由 CI 校验」逐处改「人工核对 / §18.1 待补」**
+> **当前版本：v1.9（2026-10-27）** — v1.8 ＋ **§3.4 覆盖度矩阵（`coverage` 键 = `kit.categories`，`done` 由磁盘算，`check-kits --strict` 执法）**；`check-kits.js` 加**存量豁免表**（软警按个例豁免、警消失后豁免条目自动变红）
+> **上一版：v1.8（2026-10-27）** — 4 处 schema 死链改 `asset.v2` · Unity 端口 **8080 → 8090** · `_archive` 扁平形制 · LFS/submodule 实测更正 · **intake 同版本异内容拒绝（`--force` 才覆盖，同版本同内容跳过）** · **未执法的「由 CI 校验」逐处改「人工核对 / §18.1 待补」**
 >
 > **上一版：v1.6（2026-10-19）** — v1.5 + `X-0053` A-1/A-2：**§4 分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类，`kit.categories` 取并集、由 `checkKitCategories()` 执法）＋ 新增 **§18.1 CI 覆盖边界**（把"由 CI 校验"逐条落到实处）
 >
@@ -142,6 +143,17 @@ kits/<kit>/<category>/<name>/
 
 **字段名写死如上**。其它 kit 在各自 `kit.json.grid` 按同结构声明；**不得另起字段名**。
 **模数是拼装的前提**（§19）：一切构件尺寸与插槽位置必须落在网格上，否则 AI 生成的构件互相插不上。
+
+### 3.4 覆盖度矩阵（`kit.json.coverage`）
+
+| 判据 | 规则 | 谁执法 |
+|---|---|---|
+| 键 = 类目 | 非 `$` 键**必须与 `kit.categories` 一一对应**；声明了但还没有计划的类目写 `{ "done": 0, "planned": 0 }` | `scripts/check-kits.js` |
+| `done` | **只能由磁盘算**（`kits/<kit>/<category>/<name>/asset.json` ＋ `assemblies/` 里 `kit` + `category` 字段）；手改一个数就红 | `tools/intake.js` 刷新 · `check-kits` 核对 |
+| `planned` | 只对进入生产计划（§9.2 构件表 / 批量排期）的类目填数字；`components/*` 必须填，无计划写 0 | `check-kits.js` |
+| 资产类目 | 资产只能落在已声明的类目里 —— 新类目**先加 `categories`** 再入库 | `check-kits.js` |
+
+★ 缘起（2026-10-27，`X-0064` 存量）：此前 `intake` 只刷新**已在 coverage 里的键**；`kit.categories` 24 类而 coverage 只有 18 类，6 个 `buildings/*` 声明的类目**永远不进矩阵** ⇒ 该类目将来入库的资产会被静默漏计。现在键必须对齐、`done` 由磁盘算。
 
 ---
 
@@ -515,8 +527,9 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | `kit.categories` ∈ 两份 enum 的并集 | ✅ `checkKitCategories()`（`npm test`） |
 | 资产包语法 / 装配 §19.5 八条判据 | ✅ `test/smoke.js` ＋ `test/assembly.js` |
 | 入库 dry-run（不落盘） | ✅ `tools/intake.js --dry-run` |
-| **已入库资产**（`kits/`）逐件 schema / 文件 / 目录名 | ✅ `scripts/check-kits.js`（40 件；`--strict` 连警告一起卡） |
+| **已入库资产**（`kits/`）逐件 schema / 文件 / 目录名 ＋ **coverage 矩阵** | ✅ `scripts/check-kits.js --strict`（40 件；软警须进豁免表，警消失即红） |
 | **已入库装配清单**（零份 = 失败） | ✅ `scripts/check-assemblies.js`（不再「没有清单就跳过 exit 0」） |
+| 门禁自测（反向用例） | ✅ `check-kits --self-test` ＋ `intake --self-test` |
 | 版本 / CHANGELOG / 镜像 / tag 锚点 | ✅ `scripts/version.js check` |
 | §1 轴心 ↔ Studio `pipeline/origin-rules.md` | ⏳ **未校验**（跨仓，需 studio 侧出机读镜像） |
 | §0.1 其余镜像（预算 / 模数 / 材质）↔ 真源 | ⏳ **未校验** |

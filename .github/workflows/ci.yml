@@ -35,8 +35,13 @@ jobs:
       - name: 文档镜像 ↔ schema 真源（§4 分类）
         run: node scripts/check-doc-enums.js
 
-      - name: 已入库资产逐件校验（kits/）
-        run: node scripts/check-kits.js
+      - name: 已入库资产逐件校验（kits/ · strict ＋ 覆盖度矩阵）
+        run: node scripts/check-kits.js --strict
+
+      - name: 门禁自测（反向用例）
+        run: |
+          node scripts/check-kits.js --self-test
+          node tools/intake.js --self-test
 
       - name: 装配清单校验（零份 = 失败，不再跳过）
         run: node scripts/check-assemblies.js

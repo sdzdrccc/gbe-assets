@@ -170,6 +170,30 @@
     "assemblies/building": {
       "done": 3,
       "planned": 8
+    },
+    "buildings/palace": {
+      "done": 0,
+      "planned": 0
+    },
+    "buildings/residential": {
+      "done": 0,
+      "planned": 0
+    },
+    "buildings/commercial": {
+      "done": 0,
+      "planned": 0
+    },
+    "buildings/religious": {
+      "done": 0,
+      "planned": 0
+    },
+    "buildings/garden": {
+      "done": 0,
+      "planned": 0
+    },
+    "buildings/infrastructure": {
+      "done": 0,
+      "planned": 0
     }
   }
 }

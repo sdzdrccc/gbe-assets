@@ -67,7 +67,7 @@
     "coverage": {
       "type": "object",
       "additionalProperties": true,
-      "description": "覆盖度矩阵（派生快照，可重建）：{ \"components/roof\": { \"done\": 5, \"planned\": 5 } }。"
+      "description": "覆盖度矩阵（派生快照，可重建）：{ \"components/roof\": { \"done\": 5, \"planned\": 5 } }。键必须与 kit.categories 一一对应（`$` 注释键除外）；done = 磁盘实况，由 tools/intake.js 刷新、check-kits 核对；planned 只对进入生产计划的类目填写，无计划时写 0。"
     }
   }
 }

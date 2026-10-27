@@ -100,13 +100,39 @@ function targetDirFor(asset) {
 // kit.json coverage 刷新（派生快照）
 // ---------------------------------------------------------------------------
 
-function refreshCoverage(kitId, opts) {
-  const kitFile = path.join(KITS, kitId, 'kit.json');
-  if (!fs.existsSync(kitFile)) return null;
-  const kit = JSON.parse(fs.readFileSync(kitFile, 'utf8'));
-  const coverage = kit.coverage;
-  if (!coverage || typeof coverage !== 'object') return null;
+/** 纯函数：把磁盘计数并入 coverage（派生快照）——不读盘，便于自测。
+ *  不变式：coverage 的键 **等于** kit.categories（`$` 开头的注释键除外）。
+ *  声明了但还没有计划的类目补 `{ done, planned: 0 }`；已有条目只改 `done`，不碰 `planned`。 */
+function mergeCoverage(kit, counts) {
+  const coverage = kit.coverage && typeof kit.coverage === 'object' ? kit.coverage : {};
+  const declared = Array.isArray(kit.categories) ? kit.categories : [];
+  let changed = false;
 
+  for (const key of Object.keys(coverage)) {
+    if (key.startsWith('$')) continue;
+    const entry = coverage[key];
+    if (!entry || typeof entry !== 'object') continue;
+    const done = counts.get(key) || 0;
+    if (entry.done !== done) {
+      entry.done = done;
+      changed = true;
+    }
+  }
+  for (const key of declared) {
+    if (Object.prototype.hasOwnProperty.call(coverage, key)) continue;
+    coverage[key] = { done: counts.get(key) || 0, planned: 0 };
+    changed = true;
+  }
+  // $comment 里别留会过期的话
+  if (coverage.$comment && !coverage.$comment.includes('tools/intake.js')) {
+    coverage.$comment = '派生快照（可重建）。由 tools/intake.js 入库时刷新，等价于 gbe reindex；禁止手工维护。';
+    changed = true;
+  }
+  return { coverage, changed };
+}
+
+/** 纯函数（除读盘外无反作用）：按磁盘实况统计各类目资产数。 */
+function countKitCoverage(kitId) {
   const counts = new Map();
   const bump = (category, n = 1) => counts.set(category, (counts.get(category) || 0) + n);
 
@@ -158,23 +184,16 @@ function refreshCoverage(kitId, opts) {
     }
   };
   if (fs.existsSync(asmDir)) walkAsm(asmDir);
+  return counts;
+}
 
-  let changed = false;
-  for (const key of Object.keys(coverage)) {
-    if (key.startsWith('$')) continue;
-    const entry = coverage[key];
-    if (!entry || typeof entry !== 'object') continue;
-    const done = counts.get(key) || 0;
-    if (entry.done !== done) {
-      entry.done = done;
-      changed = true;
-    }
-  }
-  // $comment 里别留会过期的话
-  if (coverage.$comment && !coverage.$comment.includes('tools/intake.js')) {
-    coverage.$comment = '派生快照（可重建）。由 tools/intake.js 入库时刷新，等价于 gbe reindex；禁止手工维护。';
-    changed = true;
-  }
+function refreshCoverage(kitId, opts) {
+  const kitFile = path.join(KITS, kitId, 'kit.json');
+  if (!fs.existsSync(kitFile)) return null;
+  const kit = JSON.parse(fs.readFileSync(kitFile, 'utf8'));
+  if (!kit.coverage || typeof kit.coverage !== 'object') return null;
+
+  const { coverage, changed } = mergeCoverage(kit, countKitCoverage(kitId));
   if (changed && !opts.dryRun) {
     fs.writeFileSync(kitFile, JSON.stringify(kit, null, 2) + '\n', 'utf8');
   }
@@ -414,6 +433,20 @@ function selfTest() {
   t('同版本异内容 + force → replace', decideExisting('1.0.0', '1.0.0', false, true).action, 'replace');
   t('不同版本 → replace', decideExisting('1.0.0', '1.0.1', false, false).action, 'replace');
   t('旧包无版本 → replace', decideExisting(null, '1.0.0', false, false).action, 'replace');
+
+  // coverage 派生合并：键必须等于 kit.categories
+  const base = () => ({ categories: ['components/roof', 'buildings/palace'], coverage: { $comment: '由 tools/intake.js 刷新', 'components/roof': { done: 0, planned: 5 } } });
+  const m1 = mergeCoverage(base(), new Map([['components/roof', 2]]));
+  t('coverage · 已有键只更新 done', m1.coverage['components/roof'].done, 2);
+  t('coverage · planned 不被改写', m1.coverage['components/roof'].planned, 5);
+  t('coverage · 声明但无计划 → planned 0', m1.coverage['buildings/palace'].planned, 0);
+  t('coverage · 声明但无计划 → done 0', m1.coverage['buildings/palace'].done, 0);
+  t('coverage · 补键算变更', m1.changed, true);
+  t('coverage · 注释键保留', m1.coverage.$comment.includes('tools/intake.js'), true);
+  const full = base();
+  full.coverage['buildings/palace'] = { done: 0, planned: 0 };
+  t('coverage · 键齐且 done 一致 → changed=false', mergeCoverage(full, new Map()).changed, false);
+  t('coverage · 未在 categories 里出现 → 不新增键', Object.keys(mergeCoverage(full, new Map([['props/x', 3]])).coverage).includes('props/x'), false);
   let bad = 0;
   console.log('  [intake] 反向测试（--self-test）');
   for (const [name, ok, detail] of cases) {
@@ -429,4 +462,4 @@ if (require.main === module) {
   process.exit(main(process.argv.slice(2)));
 }
 
-module.exports = { intake, targetDirFor, parseInboxName, refreshCoverage, decideExisting, dirDigest };
+module.exports = { intake, targetDirFor, parseInboxName, refreshCoverage, decideExisting, dirDigest, mergeCoverage, countKitCoverage };
