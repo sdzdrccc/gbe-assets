@@ -11,7 +11,8 @@
  *     （契约 DoD：无 error 且无 warning，无豁免通道 —— CONVENTIONS §17 第 4 条（`docs/CONVENTIONS.md:467`））。
  *  ② 只 move，不删：`fs.renameSync`。仓库内同盘，不跨设备。
  *     目标已存在（同 id 的旧版本）→ 先把旧目录 **move 到 `_archive/`**，再落新包。
- *     任何情况下都不用 `rm`（CONVENTIONS 硬性禁令）。
+ *     ★ **同 id 同 version 但内容不同 → 拒绝**（必须升 version，或显式 `--force`）；
+ *       同版本同内容 → 跳过（幂等重跑）。任何情况下都不用 `rm`（CONVENTIONS 硬性禁令）。
  *  ③ 目录名不变式：kits 侧目录名**严格等于 id 第三段**，不带类别前缀（§2.2）。
  *     错例：`kits/cn-ancient/components/roof/roof-xuanshan-single-a/`。
  *
@@ -28,6 +29,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const gbe = require('../packages/schema');
 
 const REPO = path.resolve(__dirname, '..');
@@ -236,13 +238,28 @@ function intake(opts) {
 
     if (fs.existsSync(t.dir)) {
       const old = readAssetVersion(t.dir);
+      const sameContent =
+        String(old || '') === String(asset.version || '') && dirDigest(t.dir) === dirDigest(src);
+      const d = decideExisting(old, asset.version, sameContent, !!opts.force);
+      if (d.action === 'skipped') {
+        row.action = 'skipped';
+        row.note = d.reason;
+        rows.push(row);
+        continue;
+      }
+      if (d.action === 'rejected') {
+        row.action = 'rejected';
+        row.errors.push(d.reason);
+        rows.push(row);
+        continue;
+      }
       const archName = `${t.name}@${old || '0.0.0'}`;
       const archPath = path.join(ARCHIVE, archName);
       let finalArch = archPath;
       let n = 2;
       while (fs.existsSync(finalArch)) finalArch = path.join(ARCHIVE, `${archName}+${n++}`);
       row.action = 'replace';
-      row.note = `旧版本 → _archive/${path.basename(finalArch)}/`;
+      row.note = `旧版本 → _archive/${path.basename(finalArch)}/${d.reason ? ' · ' + d.reason : ''}`;
       if (!opts.dryRun) {
         moveDir(t.dir, finalArch);
       }
@@ -267,20 +284,47 @@ function readAssetVersion(dir) {
   }
 }
 
+/** 目录内容摘要（相对路径 + 文件字节；排序保证确定性）。用于判「同版本是否同内容」。 */
+function dirDigest(dir) {
+  const h = crypto.createHash('sha256');
+  (function walk(d, rel) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const r = rel ? rel + '/' + e.name : e.name;
+      if (e.isDirectory()) { h.update('D ' + r + '\n'); walk(path.join(d, e.name), r); }
+      else { h.update('F ' + r + '\n'); h.update(fs.readFileSync(path.join(d, e.name))); }
+    }
+  })(dir, '');
+  return h.digest('hex');
+}
+
+/**
+ * 纯函数：目标已存在时该怎么处理（ADR：同版本重投必须拒绝，覆盖需显式 --force）。
+ * ★ 同版本同内容 = 幂等重跑，跳过；同版本异内容 = 静默换代风险，拒绝；不同版本 = 正常换代。
+ */
+function decideExisting(oldVersion, newVersion, sameContent, force) {
+  if (sameContent) return { action: 'skipped', reason: '同版本同内容 → 跳过（幂等）' };
+  if (String(oldVersion || '') === String(newVersion || '') && !force) {
+    return { action: 'rejected', reason: `同版本 ${newVersion} 但内容不同 —— 必须升 version，或显式加 --force` };
+  }
+  return { action: 'replace', reason: force ? '--force 覆盖同版本' : '' };
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
 function main(argv) {
-  const opts = { dryRun: false, quiet: false, only: null, reindex: false };
+  const opts = { dryRun: false, quiet: false, only: null, reindex: false, force: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') opts.dryRun = true;
     else if (a === '--quiet') opts.quiet = true;
     else if (a === '--reindex') opts.reindex = true;
+    else if (a === '--force') opts.force = true;
     else if (a === '--only') opts.only = argv[++i];
     else if (a === '--help' || a === '-h') {
-      console.log('用法：node tools/intake.js [--dry-run] [--only <asset-id>] [--reindex] [--quiet]');
+      console.log('用法：node tools/intake.js [--dry-run] [--only <asset-id>] [--force] [--reindex] [--quiet]');
+      console.log('  --force    同 id 同 version 但内容不同时，仍允许覆盖（旧包进 _archive）');
       console.log('  --reindex  只刷 kits/*/kit.json 的 coverage.done，不跑入库、不碰 inbox/kits 内容');
       return 0;
     } else {
@@ -322,14 +366,16 @@ function main(argv) {
   const rows = intake(opts);
   const ok = rows.filter((r) => r.action === 'intake' || r.action === 'replace');
   const bad = rows.filter((r) => r.action === 'rejected');
+  const skipped = rows.filter((r) => r.action === 'skipped');
 
   if (!opts.quiet) {
     console.log(`inbox：${INBOX}`);
     console.log(`kits ：${KITS}${opts.dryRun ? '   （--dry-run：未动盘）' : ''}`);
     console.log('─'.repeat(96));
     for (const r of rows) {
-      const mark = r.action === 'rejected' ? '✗' : r.action === 'replace' ? '↻' : '✓';
-      const tail = r.action === 'rejected' ? '' : `→ ${r.target}${r.note ? '   ' + r.note : ''}`;
+      const mark = r.action === 'rejected' ? '✗' : r.action === 'replace' ? '↻' : r.action === 'skipped' ? '=' : '✓';
+      const tail =
+        r.action === 'rejected' ? '' : r.action === 'skipped' ? `   ${r.note}` : `→ ${r.target}${r.note ? '   ' + r.note : ''}`;
       console.log(`${mark} ${r.id}@${r.version}   ${r.action}   ${tail}`);
       r.errors.forEach((e) => console.log(`    ✗ ${e}`));
       r.warnings.forEach((w) => console.log(`    ! ${w.path}  ${w.message}`));
@@ -355,13 +401,32 @@ function main(argv) {
   console.log(
     `入库 ${ok.length} 件（新建 ${ok.filter((r) => r.action === 'intake').length} / 换代 ${
       ok.filter((r) => r.action === 'replace').length
-    }）· 拒收 ${bad.length} 件${opts.dryRun ? ' · dry-run' : ''}`
+    }）· 拒收 ${bad.length} 件 · 跳过 ${skipped.length} 件${opts.dryRun ? ' · dry-run' : ''}`
   );
   return bad.length ? 1 : 0;
 }
 
+function selfTest() {
+  const cases = [];
+  const t = (name, got, want) => cases.push([name, got === want, `得 ${JSON.stringify(got)} / 期 ${JSON.stringify(want)}`]);
+  t('同版本同内容 → skipped', decideExisting('1.0.0', '1.0.0', true, false).action, 'skipped');
+  t('同版本异内容 → rejected', decideExisting('1.0.0', '1.0.0', false, false).action, 'rejected');
+  t('同版本异内容 + force → replace', decideExisting('1.0.0', '1.0.0', false, true).action, 'replace');
+  t('不同版本 → replace', decideExisting('1.0.0', '1.0.1', false, false).action, 'replace');
+  t('旧包无版本 → replace', decideExisting(null, '1.0.0', false, false).action, 'replace');
+  let bad = 0;
+  console.log('  [intake] 反向测试（--self-test）');
+  for (const [name, ok, detail] of cases) {
+    console.log(`  ${ok ? '✓' : '✗'} ${name.padEnd(30)} ${detail}`);
+    if (!ok) bad++;
+  }
+  console.log(`  结果：${bad ? '不通过（' + bad + '）' : '通过（' + cases.length + ' / ' + cases.length + '）'}`);
+  return bad ? 1 : 0;
+}
+
 if (require.main === module) {
+  if (process.argv.includes('--self-test')) process.exit(selfTest());
   process.exit(main(process.argv.slice(2)));
 }
 
-module.exports = { intake, targetDirFor, parseInboxName, refreshCoverage };
+module.exports = { intake, targetDirFor, parseInboxName, refreshCoverage, decideExisting, dirDigest };

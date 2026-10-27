@@ -470,7 +470,7 @@ gbe-assets/
 
 **Phase 0 — 契约先行**
 1. 定稿 asset.v2 / source.v2 / **assembly.v2** / kit / collection schema（含 `schema_version` / `status` / `flags` / 尺寸轴序 / **`granularity`**）
-2. 建 `packages/schema` 导出 `@gbe/schema`；建 `catalog/ports.json`；CI 校验"文档镜像表 ⇄ 真源"一致
+2. 建 `packages/schema` 导出 `@gbe/schema`；建 `catalog/ports.json`；CI 只校验 §18.1「已校验」的镜像；其余人工核对
 3. 建 `assemblies/` 目录形态与装配校验器骨架（CONVENTIONS §19.5）
 
 > **不含迁移步骤**（ADR-0001）：库从空开始，v1 包一律拒收。
@@ -514,7 +514,7 @@ gbe-assets/
 | **冷启动无存量资产** | 覆盖度矩阵全空，前期"没东西可看" | ADR-0001 已接受此代价；用 kit 覆盖度矩阵**直接驱动生产排期**（§7），首批只铺「万安城主殿」所需构件 |
 | 装配引用悬空（构件 `deprecated` 或版本不满足） | 建筑拼不起来 | 装配校验硬失败（CONVENTIONS §19.5）；`asset deprecate` 前先跑 `used-by` 影响面检查 |
 | 引擎插件维护成本高 | 长尾负担 | 插件只做"搜索 + 下载 + 导入"三件事，逻辑集中在 API 侧；**Unity 插件延后**，当前只维护 2 套（ADR-0004） |
-| 文档多方漂移 | 双库各照各的做 | 原则 5：文档同提交同步；CI 校验镜像表与真源一致 |
+| 文档多方漂移 | 双库各照各的做 | 原则 5：文档同提交同步；CI 只校验 §18.1「已校验」的镜像；其余人工核对 |
 
 ---
 

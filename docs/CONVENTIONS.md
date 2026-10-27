@@ -2,12 +2,12 @@
 
 > **地位**：GBE 双库（gbe-assets / gbe-studio）的**唯一共享约定**，Phase 0 权威文档。
 > Schema 权威仍在 `catalog/schema/`；本文规定「两边都必须遵守、但不宜塞进单条 schema」的规则。
-> **本文档中的枚举表与数值表是"人类可读镜像"**——机器可读真源见 §0.1，镜像与真源由 CI 校验一致。
+> **本文档中的枚举表与数值表是"人类可读镜像"**——机器可读真源见 §0.1；镜像一致性**只对 §18.1「已校验」那几行由 CI 保证**，其余按「待补」处理。
 > **变更流程**：只从本文件发起 → 同步 `catalog/schema/` 与 Studio 契约 → 双库适配；禁止任一侧私自发明第二套定义。
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
 > 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0008）
-> **当前版本：v1.7（2026-10-27）** — v1.6 ＋ 文档纠错：4 处 `asset.schema.json` 死链改 `asset.v2.schema.json` · Unity 预留端口 **8080 → 8090**（端口真源已挪）· `_archive` 实际形制（扁平 `id@version[+N]`）写入 §6 · **LFS / submodule 声明按实测更正**（当前普通 Git、CI 未锁 submodule，见 §18.1）
+> **当前版本：v1.8（2026-10-27）** — v1.7 ＋ v1.8：4 处 schema 死链改 `asset.v2` · Unity 端口 **8080 → 8090** · `_archive` 扁平形制 · LFS/submodule 实测更正 · **intake 同版本异内容拒绝（`--force` 才覆盖，同版本同内容跳过）** · **未执法的「由 CI 校验」逐处改「人工核对 / §18.1 待补」**
 >
 > **上一版：v1.6（2026-10-19）** — v1.5 + `X-0053` A-1/A-2：**§4 分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类，`kit.categories` 取并集、由 `checkKitCategories()` 执法）＋ 新增 **§18.1 CI 覆盖边界**（把"由 CI 校验"逐条落到实处）
 >
@@ -18,7 +18,7 @@
 ## 0. 原则
 
 0. **决策先于文档**：任何影响双库的裁决先落 `docs/DECISIONS.md`（ADR），**在同一提交内**回写进本文件与两份 PLAN。禁止"先改文档、后补理由"——理由丢失会导致后人反复推翻。
-1. **单一真源（机器可读）**：分类枚举 → `catalog/schema/asset.v2.schema.json`；面数预算 / 网格模数 / 材质组 → `kits/<kit>/kit.json`；单位轴心朝向 / id 规则 → 本文件；**平台 / 引擎 / MCP 实现清单 → `core/registry/`（§20）**。**本文件里的表格是镜像，不是第二真源**；镜像必须与真源逐字一致，由 CI 校验（不一致即红）。脚本一律从真源读取，禁止硬编码第二份。
+1. **单一真源（机器可读）**：分类枚举 → `catalog/schema/asset.v2.schema.json`；面数预算 / 网格模数 / 材质组 → `kits/<kit>/kit.json`；单位轴心朝向 / id 规则 → 本文件；**平台 / 引擎 / MCP 实现清单 → `core/registry/`（§20）**。**本文件里的表格是镜像，不是第二真源**；镜像必须与真源逐字一致；**CI 只保证 §18.1「已校验」的行**，其余按「待补」处理（不一致即红）。脚本一律从真源读取，禁止硬编码第二份。
 2. **语法单源，门禁双跑**：JSON Schema **语法校验器只保留一份**（`catalog/schema/` 导出，双库共用同一份依赖，见 §18）。**业务门禁**（面数 / 模数 / 材质 / 命名）在出包前与入库时**两处各跑一次**，但判据不是各写一套，而是**聚合读取同一组真源**：面数 ← `kit.json.budgets`、模数 ← `kit.json.grid`、分类 ← `asset.v2.schema.json`、材质 ← `kit.json.materials`。要改门禁判据，改真源，不改脚本。
 3. **实体权威，派生可重建**：`kits/` 资产实体是权威；索引、引擎包装、转盘、blobs 皆可重建缓存。
 4. **精修只产引擎无关标准件**：坐标轴、单位、材质引用的引擎差异只在集成层 / `engines.*` 字段处理。
@@ -36,7 +36,7 @@
 | 项 | 标准 | 说明 |
 |---|---|---|
 | 单位 | **1 unit = 1 m** | 导出前 Apply Transform |
-| 轴心 | **bottom-center** | 盒底面几何中心；分类细则见 Studio `pipeline/origin-rules.md`（须与本表一致，由 CI 校验） |
+| 轴心 | **bottom-center** | 盒底面几何中心；分类细则见 Studio `pipeline/origin-rules.md`（须与本表一致；★ 跨仓，**当前人工核对**，§18.1 待补） |
 | Up | **+Y** | glTF / Godot / Unity 一致 |
 | Forward | **-Z** | **glTF 基准**；精修层**禁止**为迁就引擎改朝向 |
 | 尺寸轴序 | `geometry.dimensions_m = [x 宽, y 高, z 深]` | **顺序写死**，禁止按"宽高深"字面自由解释——引擎包装的包围盒与缩放全依赖此项 |
@@ -54,7 +54,7 @@
 - **up 轴的 Y→Z 转换由目标引擎的导入器负责**（UE Interchange、Unity glTFast、Godot 原生 glTF）——本库与集成层**不重复转换**，重复转换会得到"躺着的模型"。
 - 集成层只负责三件事：① 单位缩放（UE `scale: 100`）；② **水平**朝向修正（Unity `rotation: [0,180,0]`，仅绕 Y）；③ 材质重映射。
 
-**轴心与轴允不允许被 kit 覆盖**：**不允许**。`kit.json.axis` / `kit.json.pivot` 只是冗余声明，CI 校验其值必须等于本表；不一致以本表为准并报错。
+**轴心与轴允不允许被 kit 覆盖**：**不允许**。`kit.json.axis` / `kit.json.pivot` 只是冗余声明，★ 当前**人工核对**其值必须等于本表（§18.1 待补）；不一致以本表为准并报错。
 
 **薄壳默认处理**：开放壳（屋瓦、顶棚等）在减面前必须 `solidify` 封底（默认厚度见 recipe，构件常见 0.05–0.06 m），保证 manifold；未封底不得出包。
 
@@ -92,10 +92,10 @@ kits/<kit>/<category>/<name>/
 | `asset.schema_version` | **契约版本**，字符串（当前 `"2"`），必填。intake 据此选择校验器；缺失按 v1 处理并**报错**，不静默兼容 |
 | `asset.version` | **资产版本**，语义化 `MAJOR.MINOR.PATCH`，首次入库 `1.0.0` |
 | 库内权威路径 | **不带版本目录**；同一路径下是当前 published 版本 |
-| 历史版本 | **不进资产目录**。可选归档到库根 `_archive/<asset-id>/<version>/`（不参与扫描、不违 §2.2 不变式）；默认只在 index 记历史 + 标 `deprecated` |
+| 历史版本 | **不进资产目录**。归档到库根 **`_archive/<id>@<version>[+N]/`（扁平）**（不参与扫描、不违 §2.2 不变式）；默认只在 index 记历史 + 标 `deprecated` |
 | inbox 投递目录 | `inbox/<asset-id>@<version>/`；无 version 的包按 `0.0.0-draft` 处理 |
-| intake 完成后的 inbox | **move 归档**（`inbox/<id>@<version>/` → `_archive/inbox/<id>@<version>/`），**禁止 `rm -rf`**（见 §15.2） |
-| 同 id 重投 | 视为**新 version**；覆盖当前版需显式 `--force` 且写 intake diff |
+| intake 完成后的 inbox | **move 归档**（`inbox/<id>@<version>/` → `_archive/<id>@<version>[+N]/`），**禁止 `rm -rf`**（见 §15.2） |
+| 同 id 重投 | **升 version = 正常换代**；**同 version 同内容 = 跳过（幂等）**；**同 version 异内容 = 拒绝**，确需覆盖用显式 `--force` |
 | 同 id 异内容且未改 version | **拒绝入库** |
 
 > 契约版本（`schema_version`）与资产版本（`version`）是两件事，不可混用。前者决定"用什么校验器"，后者决定"这是第几版资产"。
@@ -126,7 +126,7 @@ kits/<kit>/<category>/<name>/
 | hero | 100_000 |
 
 - **真源**：`kits/<kit>/kit.json` → `budgets`；缺失时回退 `catalog.config.json` 默认表。
-- 本表为**人类可读镜像**（§0.1），CI 校验其与 `catalog.config.json` 及 kit 声明一致。
+- 本表为**人类可读镜像**（§0.1），★ 当前**人工核对**其与 `catalog.config.json` 及 kit 声明一致（§18.1 待补）。
 - `geometry.polycount` 约定记为**三角面数**（tris），非多边形数。
 - 脚本**禁止**内置另一套数字。
 
@@ -472,7 +472,7 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 6. 按引擎下载 **Godot 或 Unreal** 包装成功（至少 1 个引擎；**Unity 延后，不计入**，ADR-0004）；
 7. CostLedger 有账，`provider_used` 正确（发生降级时 `provider_used ≠ provider_requested`；多通道平台另记 `provider_channel`，§12）；
 8. `validate` CI 在双库均绿；
-9. **文档多方一致**：CONVENTIONS / `catalog/schema/` / 两份 PLAN / `BUILDING-DECOMPOSITION.md` 无冲突（CI 校验镜像表与真源一致）。
+9. **文档多方一致**：CONVENTIONS / `catalog/schema/` / 两份 PLAN / `BUILDING-DECOMPOSITION.md` 无冲突（★ 已校验的行见 §18.1；其余人工核对）。
 10. **（新增）** 至少 1 件构件具备完整 `sockets[]` 且通过网格对齐校验（§19.5），并可被一条装配清单引用成功装配。
 
 ---
@@ -490,7 +490,7 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | **平台 / 引擎 / MCP 实现注册表** | `gbe-studio/core/registry/`（`providers.json` / `engines.json` / `mcp.json`），见 §20 |
 | 端口表（**全项目唯一真源**） | `gbe-assets/catalog/ports.json`（含 studio 桥端口与 assets 服务端口） |
 | Studio 端口视图 | `gbe-studio/bridges/registry.json` — **由真源生成 / 校验的只读视图**，启动前仍做冲突探测；不得作为第二真源 |
-| 轴心分类细则 | Studio `pipeline/origin-rules.md`（须与 §1 一致，由 CI 校验） |
+| 轴心分类细则 | Studio `pipeline/origin-rules.md`（须与 §1 一致；★ 跨仓，当前人工核对，§18.1 待补） |
 | 场景建筑拆分方案 | `gbe-studio/docs/BUILDING-DECOMPOSITION.md`（流程权威；契约部分见本文件 §19） |
 
 **端口条目的 `status` 三态**（ADR-0007）：
@@ -772,3 +772,4 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | 2026-10-12 | **v1.5 决策回写**（依 `docs/DECISIONS.md` **ADR-0008**）：§0 新增**原则 7** —— 以 `$` 开头的键是**文档性注释**，不参与契约语义、不受 `additionalProperties: false` 约束、不校验值类型、不属于数据。① 配套插桩：五个 schema（`asset.v2` / `source.v2` / `assembly.v2` / `kit` / `collection`）的 **27 处**封闭或 map 节点统一加 `"patternProperties": { "^\\$": {} }`；② ★ 规则**写在 schema 里、不写在校验器里** —— 校验器若私自放行，schema 就成了假的，换 ajv 复核会给出不同结论；③ 边界由 `packages/schema/test/smoke.js` 三条护栏钉住：未知非 `$` 键（`grid.snap_x`）**仍必须拦**、map 型（`materials`）放行该前缀后**其余值仍按数组校验**；④ 缘起：真源 `kits/cn-ancient/kit.json` 一直过不了 `validateKit`（三处 `$comment`），而该惯例早于契约本身（`catalog.config.json` / `ports.json` / studio 四张注册表全在用，`tools/intake.js` 还主动重写 `coverage.$comment`）—— 属**契约与自己的数据形状长期不符**，不是某处笔误 |
 | 2026-10-19 | **v1.6**：`X-0053` A-1/A-2 —— ① §4 **分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类；`kit.categories` 取并集，由 `checkKitCategories()` 执法）；② 新增 **§18.1 CI 覆盖边界**（「由 CI 校验」逐条落到「已校验 / 未校验」两栏） |
 | 2026-10-27 | **v1.7 文档纠错**（`X-0063` / `X-0064` 复审项）：① **4 处 `asset.schema.json` 死链**改 `asset.v2.schema.json`（§0.1 / §9.1 / §19.1）；② Unity 预留端口 **8080 → 8090**（`catalog/ports.json` 真源 2026-10-17 已挪，8080 被真实服务占用）；③ `_archive` 实际形制写进 `AGENTS.md` §6.1（**扁平 `id@version[+N]`**，不是 `<id>/<version>/`）；④ **LFS / submodule 声明按实测更正**：当前普通 Git、CI 未锁 submodule（§11 / §18 标注，不再把愿望写成现状） |
+| 2026-10-27 | **v1.8**：`X-0064` B-1/B-4 ＋ CI 声明纠错 —— ① `intake` **同版本异内容拒绝**（`--force` 才覆盖，同版本同内容跳过）；② `_archive` 实际扁平形制 `id@version[+N]` 写进 §2.3；③ **未执法的「由 CI 校验」逐处改为「人工核对 / §18.1 待补」**，不再把愿望写成现状 |
