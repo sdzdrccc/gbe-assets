@@ -7,9 +7,9 @@
 >
 > 对应方案：`gbe-assets/docs/PLAN.md` · `gbe-studio/docs/PLAN.md` · `gbe-studio/docs/BUILDING-DECOMPOSITION.md`
 > 决策依据：`docs/DECISIONS.md`（ADR-0001 ~ ADR-0008）
-> **当前版本：v1.6（2026-10-19）** — v1.5 + `X-0053` A-1/A-2：**§4 分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类，`kit.categories` 取并集、由 `checkKitCategories()` 执法）＋ 新增 **§18.1 CI 覆盖边界**（把"由 CI 校验"逐条落到实处）
+> **当前版本：v1.7（2026-10-27）** — v1.6 ＋ 文档纠错：4 处 `asset.schema.json` 死链改 `asset.v2.schema.json` · Unity 预留端口 **8080 → 8090**（端口真源已挪）· `_archive` 实际形制（扁平 `id@version[+N]`）写入 §6 · **LFS / submodule 声明按实测更正**（当前普通 Git、CI 未锁 submodule，见 §18.1）
 >
-> **上一版**：v1.5（2026-10-12）— 依 ADR-0008：新增原则 7「`$` 前缀的键 = 文档性注释，不参与契约语义」，五个 schema 的 27 处封闭 / map 节点统一放行该前缀
+> **上一版：v1.6（2026-10-19）** — v1.5 + `X-0053` A-1/A-2：**§4 分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类，`kit.categories` 取并集、由 `checkKitCategories()` 执法）＋ 新增 **§18.1 CI 覆盖边界**（把"由 CI 校验"逐条落到实处）
 >
 > **上一版**：v1.4（2026-09-15）— 依 ADR-0007：MCP 注册表引入「来源 / 版本区间 / 成熟度」三维度，官方实现进注册表但**不预设首选**；端口 `status` 增 `reserved` 三态
 
@@ -18,8 +18,8 @@
 ## 0. 原则
 
 0. **决策先于文档**：任何影响双库的裁决先落 `docs/DECISIONS.md`（ADR），**在同一提交内**回写进本文件与两份 PLAN。禁止"先改文档、后补理由"——理由丢失会导致后人反复推翻。
-1. **单一真源（机器可读）**：分类枚举 → `catalog/schema/asset.schema.json`；面数预算 / 网格模数 / 材质组 → `kits/<kit>/kit.json`；单位轴心朝向 / id 规则 → 本文件；**平台 / 引擎 / MCP 实现清单 → `core/registry/`（§20）**。**本文件里的表格是镜像，不是第二真源**；镜像必须与真源逐字一致，由 CI 校验（不一致即红）。脚本一律从真源读取，禁止硬编码第二份。
-2. **语法单源，门禁双跑**：JSON Schema **语法校验器只保留一份**（`catalog/schema/` 导出，双库共用同一份依赖，见 §18）。**业务门禁**（面数 / 模数 / 材质 / 命名）在出包前与入库时**两处各跑一次**，但判据不是各写一套，而是**聚合读取同一组真源**：面数 ← `kit.json.budgets`、模数 ← `kit.json.grid`、分类 ← `asset.schema.json`、材质 ← `kit.json.materials`。要改门禁判据，改真源，不改脚本。
+1. **单一真源（机器可读）**：分类枚举 → `catalog/schema/asset.v2.schema.json`；面数预算 / 网格模数 / 材质组 → `kits/<kit>/kit.json`；单位轴心朝向 / id 规则 → 本文件；**平台 / 引擎 / MCP 实现清单 → `core/registry/`（§20）**。**本文件里的表格是镜像，不是第二真源**；镜像必须与真源逐字一致，由 CI 校验（不一致即红）。脚本一律从真源读取，禁止硬编码第二份。
+2. **语法单源，门禁双跑**：JSON Schema **语法校验器只保留一份**（`catalog/schema/` 导出，双库共用同一份依赖，见 §18）。**业务门禁**（面数 / 模数 / 材质 / 命名）在出包前与入库时**两处各跑一次**，但判据不是各写一套，而是**聚合读取同一组真源**：面数 ← `kit.json.budgets`、模数 ← `kit.json.grid`、分类 ← `asset.v2.schema.json`、材质 ← `kit.json.materials`。要改门禁判据，改真源，不改脚本。
 3. **实体权威，派生可重建**：`kits/` 资产实体是权威；索引、引擎包装、转盘、blobs 皆可重建缓存。
 4. **精修只产引擎无关标准件**：坐标轴、单位、材质引用的引擎差异只在集成层 / `engines.*` 字段处理。
 5. **四份文档必须同提交同步**：本文件、`catalog/schema/`、两份 PLAN（+ `BUILDING-DECOMPOSITION.md`）构成一组。任一处变更须在同一提交内同步其余；**"多方并存但不一致"是不可接受状态**，由 CI 检出（见 §18）。
@@ -315,7 +315,7 @@ Studio → Assets 的唯一交接物：
 | `continue` | 重复阵列 | 栏杆、连廊、街墙 | 声明"沿 direction 按 `step_m` 重复"；`step_m` 必填 |
 | `custom` | 其它 | — | 必须附 `note` 说明；**跨 kit 复用不允许出现 `custom`** |
 
-> 类型表是**人类可读镜像**（§0.1），真源为 `catalog/schema/asset.schema.json` 中 `sockets[].type` enum。新增类型须同步三处。
+> 类型表是**人类可读镜像**（§0.1），真源为 `catalog/schema/asset.v2.schema.json` 中 `sockets[].type` enum。新增类型须同步三处。
 
 ### 9.2 socket 与装配的关系
 
@@ -340,7 +340,7 @@ Studio → Assets 的唯一交接物：
 
 | 产物 | 权威？ | Git / LFS | 重建 |
 |---|---|---|---|
-| `model.glb` / lods / `preview.png` / collisions | ✅ | LFS | — |
+| `model.glb` / lods / `preview.png` / collisions | ✅ | **普通 Git**（★ 2026-10-27 实测：当前**未启用 LFS**） | — |
 | `asset.json` / `source.json` / kit.json / schema / assemblies | ✅ | 普通 Git | — |
 | `engines/`（含 `source_hash` / `asset_version` 记录） | ❌ | **默认不入库** | `gbe derive --engine <n>` |
 | `variants/`（`asset.variants` 的展开件） | ❌ | 默认不入库 | `gbe derive --variants` |
@@ -349,10 +349,10 @@ Studio → Assets 的唯一交接物：
 | `turntable/` · `preview.webp` | ❌ | 默认不入库 | `gbe derive --previews` |
 | `index.db` · `blobs/` · `materials/index.json` | ❌ | 默认不入库 | `gbe reindex` / `gbe dedupe` |
 | `baked/`（装配清单烘焙成的单网格，§19.6） | ❌ | 默认不入库 | `gbe derive --bake <assembly>` |
-| `_archive/`（历史版本、已处理 inbox） | ✅ 只读留档 | 可 LFS，可选 | — |
+| `_archive/`（历史版本、已处理 inbox） | ✅ 只读留档 | **普通 Git**（同左） | — |
 | Studio 侧 raw 生成件 | 中间态 | 不入 Assets Git | — |
 
-> **同资产的"Draco 版"与"原版"是两份产物**：Web 详情页用 Draco 版，引擎下载默认给原版（避免插件依赖）。二者都登记于本表，不视为新资产。
+> ★ **2026-10-27 实测更正**：`.gitattributes` 当前**没有 LFS filter** ⇒ 上表「普通 Git」是现状；★ 若将来启用 LFS，**本节与 `.gitattributes` 必须同批改**，否则又是「声明与实物不符」。
 
 ### 压缩策略
 
@@ -485,7 +485,7 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | 决策台账（ADR） | `gbe-assets/docs/DECISIONS.md`（权威，只追加） |
 | 资产包 schema（机器可读真源） | `gbe-assets/catalog/schema/` |
 | 校验器实现 | `gbe-assets/packages/schema/`，导出 npm 包形态 `@gbe/schema`（含 JSON Schema + `validate.js`） |
-| Studio 引用方式 | 开发期 `file:../gbe-assets/packages/schema`；CI 期用 **git submodule 锁 commit**。**禁止拷贝副本**（拷贝即违反 §0.2） |
+| Studio 引用方式 | 开发期 `file:../gbe-assets/packages/schema`；CI 期以 **git submodule 锁 commit**（★ **当前未启用**，见 §18.1 待补栏）。**禁止拷贝副本**（拷贝即违反 §0.2） |
 | 生成 / 精修 / 引擎契约 | `gbe-studio/core/contracts/` |
 | **平台 / 引擎 / MCP 实现注册表** | `gbe-studio/core/registry/`（`providers.json` / `engines.json` / `mcp.json`），见 §20 |
 | 端口表（**全项目唯一真源**） | `gbe-assets/catalog/ports.json`（含 studio 桥端口与 assets 服务端口） |
@@ -539,7 +539,7 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 | `L3` | 装饰细部 | `components/ornament` · `props/ritual` | ✅ | ≤ `component` 预算 |
 
 - `asset.granularity` **必填**（v2 新增字段）；missing → schema 拒绝。
-- 真源：`catalog/schema/asset.schema.json` 的 `granularity` enum。本表为镜像。
+- 真源：`catalog/schema/asset.v2.schema.json` 的 `granularity` enum。本表为镜像。
 
 ### 19.2 模数约束（拼装可插上的前提）
 
@@ -697,7 +697,7 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | `godot` | ✅ enabled | TCP 9876（MCP 写死） | 主引擎 |
 | `unreal` | ✅ enabled | UDP 6776 · HTTP 30010 · WS 8091 · TCP 55557（+ **预留 HTTP 8000**） | 4 个 MCP 实现可选；8000 = 官方实现（ADR-0007）。**官方实现不预设首选** |
 | `blender` | ✅ enabled | TCP 9877 | 精修主通道（非落地引擎） |
-| `unity` | ⏸ **deferred** | （预留 HTTP 8080） | ADR-0004：延后，契约保留、实现未做 |
+| `unity` | ⏸ **deferred** | （预留 HTTP 8090） | ADR-0004：延后，契约保留、实现未做 |
 
 - `derive --engine <id>` 遇到 `deferred` 引擎**明确报错**（"引擎未启用"），不静默跳过、不降级为原格式。
 - 每个引擎适配器必须实现同一组 **8 个语义动作**：`probe` / `importAsset` / `instantiate` / `applyCollision` / `remapMaterials` / `registerScene` / `verify` / `undo`。
@@ -763,3 +763,5 @@ L0 建筑以**声明式装配清单**存在，引用构件 id + version + 变换
 | 2026-09-15 | **v1.4 决策回写**（依 `docs/DECISIONS.md` **ADR-0007**，官方 UE 5.8 MCP 出现后）：① §20.3 条目新增 **`source` / `engine_version_range` / `maturity`** 三维度并回填全部既有实现，`selection_policy` 增 `preference_rules`（偏好提示，**不自动选定**，`preselect=false` 不变）；② §20.3 明确 **`semantic_map: null` 的语义 =「工具尚不存在」而非「还没填」**，禁止写全 `null` 空壳映射表（空壳会掩盖「要写实现」与「要填映射」的工作量差异），新增 `supports_basis: design-complete` 表示「设计齐全但落地前可用为 0」；③ §20.2 `unreal` 行补全 4 个实现的端口（6776 / 30010 / 8091 / 55557）+ **预留 8000**；④ §18 端口 `status` 定为**三态**（省略 = 已启用 · `reserved` = 已登记未启用 · `deferred` = 引擎延后），只读视图对应 `studio_ports` / `reserved_ports` / `deferred_ports` 三组；⑤ 配套修 `bridges/sync-ports.js`：`reserved` 原先被误算进「已启用」，且 `--probe` 因 `process.exit(main(...))` 在异步完成前杀掉进程而**从未产出过任何输出** |
 | 2026-09-15 | **v1.3 实施回写**（18 件程序化构件落地时推出）：① §19.5 新增「实施说明」——把五处契约沉默处一次性定死：`transform.rotation` 单位 = 弧度、`mate_types` 缺省 = 通配、`attach` 单向例外（消解它与「互认」的直接冲突）、**两类嵌入豁免**（已对接对 / 收容式）、承重链的**种子与两条传播规则**；② §19.5 新增「节点件接法」——面接 vs 枢接的可判定前提，推论 L 形转角件**翼厚须 ≥ 1.0 m**（翼厚 0.5 m 不可自洽），推论 `wall-line` 的 `wall_module_m` 整数倍只约束**同轴续接**；③ §19.4 补齐 `transform` 单位与清单文件命名 `assemblies/<id 第三段>.json`；④ 配套落地：`packages/schema/assembly.js`（§19.5 八条判据）、`packages/schema/test/assembly.js`（27 项回归：正向 + 逐条反例）、`tools/intake.js`（inbox→kits 只 move 不删，附带刷新 coverage 派生快照） |
 | 2026-10-12 | **v1.5 决策回写**（依 `docs/DECISIONS.md` **ADR-0008**）：§0 新增**原则 7** —— 以 `$` 开头的键是**文档性注释**，不参与契约语义、不受 `additionalProperties: false` 约束、不校验值类型、不属于数据。① 配套插桩：五个 schema（`asset.v2` / `source.v2` / `assembly.v2` / `kit` / `collection`）的 **27 处**封闭或 map 节点统一加 `"patternProperties": { "^\\$": {} }`；② ★ 规则**写在 schema 里、不写在校验器里** —— 校验器若私自放行，schema 就成了假的，换 ajv 复核会给出不同结论；③ 边界由 `packages/schema/test/smoke.js` 三条护栏钉住：未知非 `$` 键（`grid.snap_x`）**仍必须拦**、map 型（`materials`）放行该前缀后**其余值仍按数组校验**；④ 缘起：真源 `kits/cn-ancient/kit.json` 一直过不了 `validateKit`（三处 `$comment`），而该惯例早于契约本身（`catalog.config.json` / `ports.json` / studio 四张注册表全在用，`tools/intake.js` 还主动重写 `coverage.$comment`）—— 属**契约与自己的数据形状长期不符**，不是某处笔误 |
+| 2026-10-19 | **v1.6**：`X-0053` A-1/A-2 —— ① §4 **分类真源拆成两份**（`asset.v2` 26 类 / `assembly.v2` 2 类；`kit.categories` 取并集，由 `checkKitCategories()` 执法）；② 新增 **§18.1 CI 覆盖边界**（「由 CI 校验」逐条落到「已校验 / 未校验」两栏） |
+| 2026-10-27 | **v1.7 文档纠错**（`X-0063` / `X-0064` 复审项）：① **4 处 `asset.schema.json` 死链**改 `asset.v2.schema.json`（§0.1 / §9.1 / §19.1）；② Unity 预留端口 **8080 → 8090**（`catalog/ports.json` 真源 2026-10-17 已挪，8080 被真实服务占用）；③ `_archive` 实际形制写进 `AGENTS.md` §6.1（**扁平 `id@version[+N]`**，不是 `<id>/<version>/`）；④ **LFS / submodule 声明按实测更正**：当前普通 Git、CI 未锁 submodule（§11 / §18 标注，不再把愿望写成现状） |

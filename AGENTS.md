@@ -32,7 +32,7 @@
 
 3. **校验器只有一份**
    语法校验用 `packages/schema`（`@gbe/schema`）。**禁止**在别处再写一份 JSON Schema 校验，
-   也**禁止**把它拷贝到别的仓库（开发期 `file:` 引用，CI 期 submodule 锁 commit）。
+   也**禁止**把它拷贝到别的仓库（开发期 `file:` 引用，CI 期 submodule 锁 commit —— ★ 当前尚未启用，见 `CONVENTIONS` §18.1）。
 
 4. **不迁移、不兼容 v1**
    `schema_version` 缺失或为 `"1"` 的包 —— **直接报错拒收**。这是 ADR-0001，不要"好心"加兼容。
@@ -122,8 +122,8 @@
 | ★ **历史档（刻意留在原位）** | `docs/CONVENTIONS-REVIEW.md` | 保留原名 | ★ README 标它「**历史，非待办**」—— ★ **但它被 `DECISIONS.md` 的 ADR 正文与 `CONVENTIONS.md` 的变更史引用** ⇒ ★ **移动它会改动历史叙述**（§7-3）⇒ ★ **判定：留在 `docs/`** |
 | **版本真源** | `VERSION` ＋ `CHANGELOG.md` | 固定名 | ★ **不许手改** —— 走 `node scripts/version.js`（§2.6）；★ `package.json.version` 同理 |
 | **校验器（双库共用一份）** | `packages/schema/` | `kebab-case.js` | ★ `@gbe/schema` —— ★ **只有一份实现**（§2.3） |
-| **入库 → 归档** | `inbox/` → **`_archive/`** | `inbox/<id>@<version>/` → `_archive/inbox/<id>@<version>/` | ★ **intake 完成后 move 归档，禁止 `rm -rf`**（`CONVENTIONS` §11） |
-| ★ **归档落点** | **`_archive/`** | `_archive/<asset-id>/<version>/` | ★ **契约 §11 登记的预留位**（有 `.gitkeep`）—— ★ 它看起来是空的，★ **但不是空壳** |
+| **入库 → 归档** | `inbox/` → **`_archive/`** | `inbox/<id>@<version>/` → `_archive/<id>@<version>[+N]/` | ★ **intake 完成后 move 归档，禁止 `rm -rf`**（`CONVENTIONS` §11） |
+| ★ **归档落点** | **`_archive/`** | **扁平 `_archive/<id>@<version>[+N]/`** | ★ **实测形制**（2026-10-27 按 `_archive/` 实盘更正；`+N` = 同版本重投的序号）。★ 不是 `<asset-id>/<version>/` 两级目录 |
 | **仓储内容** | `kits/` `materials/` `assemblies/` `apps/` `blobs/` `clients/` `services/` | ★★ **目录名严格等于 id 第三段** | ★ 见 §3（**别加类别前缀**） |
 | **索引（运行时产物）** | `catalog/index.db` | —— | ★ **git 忽略**，可 `gbe reindex` 重建 |
 | **工具** | `scripts/` · `tools/` | `kebab-case.js` | `version.js` · `install-hooks.js` · `hooks/pre-push` · `tools/intake.js` |
