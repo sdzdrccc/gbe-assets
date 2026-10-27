@@ -523,6 +523,13 @@ balance_after / balance_source   -- balance_source：余额来源（主账号 / 
 ★ **判据**：写"由 CI 校验"之前先看这张表 —— 不在表里的，要么写成"待补"，要么补脚本。
 ★ 这张表本身也要跟着 `ci.yml` 走：**加一步 CI，就回填一行**。
 
+### 18.2 双仓发版工具（ADR-0009 · 2026-10-27）
+
+- 两仓 `VERSION` **各自独立**；两份 `scripts/version.js` **各自维护，不要求逐字节相同**。
+- 只保**共享子命令的语义一致**：`show` / `log` / `bump` / `check` / `sync` / `tag`；`bump` 级别 `major / minor / patch`。
+- 判据：`node scripts/check-release-compat.js` —— 兄弟仓在场时比对命令面；不在场时显式「跳过（NOT a pass）」。
+- ★ **不比对文件哈希**：那正是本条废止的旧纪律（两份曾经不同却三处门禁全绿）。
+
 ---
 
 ## 19. 构件分级与建筑拼装契约

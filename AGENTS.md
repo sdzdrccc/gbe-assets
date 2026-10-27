@@ -82,6 +82,7 @@
 - [ ] 本次改动已写进 `CHANGELOG.md` 的新条目，且摘要是人话（不是"更新代码"）
 - [ ] 该版本已打 tag（`node scripts/version.js tag`），推送用 `git push --follow-tags`
 - [ ] 首次 clone 后跑过 `node scripts/install-hooks.js`（启用 pre-push 校验）
+- [ ] 双仓同机时跑 `node scripts/check-release-compat.js`（共享命令语义；★ 跳过不是通过）
 - [ ] `node packages/schema/test/smoke.js` 全绿
 - [ ] 改过 schema 的话：`CONVENTIONS.md` 镜像表同步了，两份 PLAN 也同步了
 - [ ] 新增字段：schema 里加了，`CONVENTIONS` 里说明了语义，示例也更新了
